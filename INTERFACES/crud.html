@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Systain Factory Management</title>
+
+    <!-- Bootstrap CSS (for layout and modals) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --dark-green: #1a4d2e;
+            --sidebar-width-open: 280px;
+            --sidebar-width-closed: 70px;
+            --light-green: #e9f5e9;
+            --accent-green: #38a169;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+            overflow-x: hidden;
+        }
+        /* Layout & Header styles */
+        #sidebar-wrapper {
+            background-color: var(--dark-green);
+            min-height: 100vh;
+            width: var(--sidebar-width-open);
+            transition: margin-left 0.3s ease, width 0.3s ease;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+        #wrapper.toggled #sidebar-wrapper { width: var(--sidebar-width-closed); }
+        .sidebar-heading {
+            padding: 1rem 1.25rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+            height: 65px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        #wrapper.toggled .sidebar-heading .text-hidden { opacity: 0; transition: opacity 0.1s; }
+        .sidebar-nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: background-color 0.2s, color 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .sidebar-nav-item:hover, .sidebar-nav-item.active {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-nav-item i { font-size: 1.5rem; min-width: 40px; }
+        #wrapper.toggled .sidebar-nav-item span { display: none; }
+        #wrapper.toggled .sidebar-nav-item { justify-content: center; padding: 0.75rem 0.5rem; }
+
+        #page-content-wrapper {
+            margin-left: var(--sidebar-width-open);
+            width: 100%;
+            transition: margin-left 0.3s ease;
+            padding: 0;
+        }
+        #wrapper.toggled #page-content-wrapper { margin-left: var(--sidebar-width-closed); }
+        .main-header {
+            background-color: var(--light-green);
+            border-bottom-left-radius: 1.5rem;
+            height: 65px;
+        }
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark-green);
+        }
+        .sidebar-toggler {
+            font-size: 1.5rem;
+            color: var(--dark-green);
+            padding: 0.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        /* CRUD Specific Styles */
+        .content-card {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        .table-responsive { border-radius: 0.75rem; overflow: hidden; }
+        .table thead { background-color: var(--dark-green); color: white; }
+        .table tbody tr:hover { background-color: var(--light-green); }
+        .btn-primary-custom {
+            background-color: var(--accent-green);
+            border-color: var(--accent-green);
+            color: white;
+            transition: background-color 0.2s;
+        }
+        .btn-primary-custom:hover {
+            background-color: #2e8b57;
+            border-color: #2e8b57;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            #sidebar-wrapper { margin-left: calc(0px - var(--sidebar-width-open)); }
+            #wrapper.toggled #sidebar-wrapper { margin-left: 0; width: var(--sidebar-width-open); }
+            #page-content-wrapper { margin-left: 0; }
+            #wrapper.toggled #page-content-wrapper { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="d-flex" id="wrapper">
+
+    <!-- Sidebar (Left Navigation) -->
+    <div id="sidebar-wrapper">
+        <div class="sidebar-heading d-flex align-items-center">
+            <i class="bi bi-gear-fill me-3 text-white"></i>
+            <span class="text-hidden">Systain</span>
+        </div>
+        <div class="list-group list-group-flush pt-3">
+            <a href="#" class="sidebar-nav-item">
+                <i class="bi bi-house-door-fill"></i>
+                <span class="ms-3 text-hidden">Dashboard</span>
+            </a>
+            <a href="#" class="sidebar-nav-item active">
+                <i class="bi bi-building-fill"></i>
+                <span class="ms-3 text-hidden">Factories Management</span>
+            </a>
+            <a href="#" class="sidebar-nav-item">
+                <i class="bi bi-bullseye"></i>
+                <span class="ms-3 text-hidden">Goals & Targets</span>
+            </a>
+            <a href="#" class="sidebar-nav-item">
+                <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                <span class="ms-3 text-hidden">Emissions Log</span>
+            </a>
+            <a href="#" class="sidebar-nav-item">
+                <i class="bi bi-people-fill"></i>
+                <span class="ms-3 text-hidden">Users</span>
+            </a>
+            <a href="#" class="sidebar-nav-item">
+                <i class="bi bi-credit-card-fill"></i>
+                <span class="ms-3 text-hidden">Billing & Plan</span>
+            </a>
+        </div>
+        <div class="position-absolute bottom-0 w-100 p-2">
+            <a href="#" class="sidebar-nav-item">
+                <i class="bi bi-person-circle"></i>
+                <span class="ms-3 text-hidden">Profile/Logout</span>
+            </a>
+        </div>
+    </div>
+    <!-- /#sidebar-wrapper -->
+
+    <!-- Page Content Wrapper -->
+    <div id="page-content-wrapper" class="flex-grow-1">
+
+        <!-- Top Header/Navbar -->
+        <nav class="main-header navbar navbar-expand-lg px-4 border-0 d-flex justify-content-between align-items-center">
+            <button class="sidebar-toggler" id="sidebarToggle" aria-label="Toggle Sidebar">
+                <i class="bi bi-list"></i>
+            </button>
+            <h1 class="header-title d-none d-sm-block me-auto ps-3">Factory Management (CRUD)</h1>
+            <div class="d-flex align-items-center">
+                <span id="authStatus" class="me-3 badge text-bg-secondary">Loading Auth...</span>
+                <span id="userIdDisplay" class="text-muted small"></span>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <div class="container-fluid p-4 p-md-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 fw-bold text-dark mb-0">Managed Factories</h2>
+                <!-- Create Button (Triggers the C/U Modal) -->
+                <button
+                        class="btn btn-primary-custom d-flex align-items-center"
+                        onclick="openCreateModal()"
+                        id="addFactoryBtn"
+                        disabled
+                >
+                    <i class="bi bi-plus-lg me-2"></i> Add New Factory
+                </button>
+            </div>
+
+            <!-- Factory List Table (READ) -->
+            <div class="content-card">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle mb-0">
+                        <thead>
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col" class="d-none d-md-table-cell">Location</th>
+                            <th scope="col">Capacity (MW)</th>
+                            <th scope="col" class="d-none d-lg-table-cell">Date Added</th>
+                            <th scope="col" class="text-center">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody id="factoryListBody">
+                        <!-- Factory rows will be dynamically inserted here -->
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">Loading factories...</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="loadingIndicator" class="text-center p-3 d-none">
+                    <div class="spinner-border text-success" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- /Main Content Area -->
+
+    </div>
+    <!-- /#page-content-wrapper -->
+
+</div>
+<!-- /#wrapper -->
+
+<!--
+    ================================================================================
+    MODALS: Create/Edit and Delete Confirmation
+    ================================================================================
+-->
+
+<!-- 1. Create/Edit Modal (C/U) -->
+<div class="modal fade" id="createEditModal" tabindex="-1" aria-labelledby="createEditModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4">
+            <!-- Form Submission Handled by JS -->
+            <form id="factoryForm" onsubmit="saveFactory(event)">
+                <div class="modal-header bg-custom-green text-white border-0 rounded-top-4" style="background-color: var(--dark-green);">
+                    <h5 class="modal-title" id="createEditModalLabel">Add New Factory</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="factoryId" name="factoryId">
+
+                    <div class="mb-3">
+                        <label for="factoryName" class="form-label fw-semibold">Factory Name</label>
+                        <input type="text" class="form-control rounded-2" id="factoryName" name="name" required placeholder="e.g., Jeddah Main Facility">
+                    </div>
+                    <div class="mb-3">
+                        <label for="factoryLocation" class="form-label fw-semibold">Location</label>
+                        <input type="text" class="form-control rounded-2" id="factoryLocation" name="location" required placeholder="e.g., Jeddah, Saudi Arabia">
+                    </div>
+                    <div class="mb-3">
+                        <label for="factoryCapacity" class="form-label fw-semibold">Capacity (MW)</label>
+                        <input type="number" class="form-control rounded-2" id="factoryCapacity" name="capacity" required min="1" placeholder="e.g., 250">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-secondary rounded-2" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-custom rounded-2" id="saveFactoryBtn">Save Factory</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Delete Confirmation Modal (Custom Alert) -->
+<div class="modal fade" id="deleteAlertModal" tabindex="-1" aria-labelledby="deleteAlertModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <i class="bi bi-trash-fill text-danger" style="font-size: 3rem;"></i>
+                <h5 class="modal-title mt-3" id="deleteAlertModalLabel">Confirm Deletion</h5>
+                <p class="text-muted mt-2">Are you sure you want to delete <strong id="deleteFactoryName">this factory</strong>? This action cannot be undone.</p>
+                <input type="hidden" id="deleteFactoryId">
+            </div>
+            <div class="modal-footer border-0 d-flex justify-content-center pt-0">
+                <button type="button" class="btn btn-secondary rounded-2" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger rounded-2" onclick="deleteFactory()">Delete Permanently</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Firebase SDK Imports (MUST use type="module") -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+        getFirestore, doc, updateDoc, deleteDoc,
+        onSnapshot, collection, query, addDoc, serverTimestamp,
+        setLogLevel
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // --- Firebase/Auth Setup ---
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    const firebaseConfig = (typeof __firebase_config !== 'undefined' && __firebase_config.trim() !== '') ? JSON.parse(__firebase_config) : {};
+    const authToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    let db, auth, currentUserId = null;
+    const FACTORY_COLLECTION_NAME = 'factories';
+
+    // --- UI Elements and Modals ---
+    const DOM = {
+        factoryListBody: document.getElementById('factoryListBody'),
+        authStatus: document.getElementById('authStatus'),
+        userIdDisplay: document.getElementById('userIdDisplay'),
+        addFactoryBtn: document.getElementById('addFactoryBtn'),
+        loadingIndicator: document.getElementById('loadingIndicator'),
+        createEditModal: new bootstrap.Modal(document.getElementById('createEditModal')),
+        deleteAlertModal: new bootstrap.Modal(document.getElementById('deleteAlertModal')),
+        factoryForm: document.getElementById('factoryForm'),
+        factoryId: document.getElementById('factoryId'),
+        factoryName: document.getElementById('factoryName'),
+        factoryLocation: document.getElementById('factoryLocation'),
+        factoryCapacity: document.getElementById('factoryCapacity'),
+        modalLabel: document.getElementById('createEditModalLabel'),
+        saveBtn: document.getElementById('saveFactoryBtn'),
+        deleteId: document.getElementById('deleteFactoryId'),
+        deleteName: document.getElementById('deleteFactoryName'),
+        confirmDeleteBtn: document.getElementById('confirmDeleteBtn')
+    };
+
+    // --- Core Functions ---
+
+    /** Initializes Firebase and handles authentication. */
+    async function initializeFirebase() {
+        if (Object.keys(firebaseConfig).length === 0) return DOM.authStatus.textContent = 'Config Error';
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            await setPersistence(auth, browserLocalPersistence).catch(e => console.warn("Persistence failed:", e));
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUserId = user.uid;
+                    DOM.authStatus.textContent = 'Authenticated';
+                    DOM.authStatus.className = 'me-3 badge text-bg-success';
+                    DOM.userIdDisplay.textContent = `User ID: ${currentUserId}`;
+                    DOM.addFactoryBtn.disabled = false;
+                    listenForFactories();
+                } else {
+                    if (authToken) { await signInWithCustomToken(auth, authToken); }
+                    else { await signInAnonymously(auth); }
+                }
+            });
+        } catch (error) {
+            console.error("Firebase Error:", error);
+            DOM.authStatus.textContent = 'Auth Failed';
+            DOM.authStatus.className = 'me-3 badge text-bg-danger';
+        }
+    }
+
+    /** Gets the public collection reference. */
+    function getFactoriesCollectionRef() {
+        if (!db) return null;
+        const collectionPath = `artifacts/${appId}/public/data/${FACTORY_COLLECTION_NAME}`;
+        return collection(db, collectionPath);
+    }
+
+    /** Renders the list of factories into the table. */
+    function renderFactoryList(factories) {
+        DOM.factoryListBody.innerHTML = '';
+        DOM.loadingIndicator.classList.add('d-none');
+        if (factories.length === 0) {
+            DOM.factoryListBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted p-4"><i class="bi bi-info-circle me-2"></i> No factories found.</td></tr>`;
+            return;
+        }
+
+        factories.forEach(factory => {
+            const dateAdded = factory.Date_Added?.toDate ? factory.Date_Added.toDate().toLocaleDateString() : 'N/A';
+            const row = document.createElement('tr');
+            // Use inline functions with stringified arguments for minimum external JS calls
+            row.innerHTML = `
+                <td>${factory.Name}</td>
+                <td class="d-none d-md-table-cell">${factory.Location}</td>
+                <td>${factory.Capacity} MW</td>
+                <td class="d-none d-lg-table-cell">${dateAdded}</td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary me-2" onclick="openEditModal('${factory.id}', '${factory.Name.replace(/'/g, "\\'")}', '${factory.Location.replace(/'/g, "\\'")}', ${factory.Capacity})" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="openDeleteModal('${factory.id}', '${factory.Name.replace(/'/g, "\\'")}')" title="Delete">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            `;
+            DOM.factoryListBody.appendChild(row);
+        });
+    }
+
+    /** Sets up real-time listener (READ). */
+    function listenForFactories() {
+        if (!currentUserId || !db) return;
+        DOM.loadingIndicator.classList.remove('d-none');
+        const q = query(getFactoriesCollectionRef());
+        onSnapshot(q, (snapshot) => {
+            const factories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            // Client-side sort by Date_Added (newest first)
+            factories.sort((a, b) => (b.Date_Added?.toMillis() || 0) - (a.Date_Added?.toMillis() || 0));
+            renderFactoryList(factories);
+        }, (error) => {
+            console.error("Error listening:", error);
+            DOM.loadingIndicator.classList.add('d-none');
+        });
+    }
+
+    /** Saves a new or updated factory (CREATE/UPDATE). */
+    window.saveFactory = async function(e) {
+        e.preventDefault();
+        const factoryId = DOM.factoryId.value;
+        const factoryRef = getFactoriesCollectionRef();
+        if (!factoryRef) return;
+
+        DOM.saveBtn.disabled = true;
+        DOM.saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+
+        try {
+            const factoryData = {
+                Name: DOM.factoryName.value,
+                Location: DOM.factoryLocation.value,
+                Capacity: parseFloat(DOM.factoryCapacity.value),
+                Organization_ID: appId,
+                Status: 'Active',
+            };
+
+            if (factoryId) {
+                await updateDoc(doc(factoryRef, factoryId), factoryData);
+            } else {
+                factoryData.Date_Added = serverTimestamp();
+                await addDoc(factoryRef, factoryData);
+            }
+            DOM.createEditModal.hide();
+        } catch (error) {
+            console.error("Save Error:", error);
+            alertUser('Error', `Failed to save factory: ${error.message}`, 'danger');
+        } finally {
+            DOM.saveBtn.disabled = false;
+            DOM.saveBtn.innerHTML = 'Save Factory';
+        }
+    }
+
+    /** Deletes a factory (DELETE). */
+    window.deleteFactory = async function() {
+        const factoryId = DOM.deleteId.value;
+        const factoryRef = getFactoriesCollectionRef();
+        if (!factoryId || !factoryRef) return;
+
+        DOM.confirmDeleteBtn.disabled = true;
+        DOM.confirmDeleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Deleting...';
+
+        try {
+            await deleteDoc(doc(factoryRef, factoryId));
+            DOM.deleteAlertModal.hide();
+        } catch (error) {
+            console.error("Delete Error:", error);
+            alertUser('Error', `Failed to delete factory: ${error.message}`, 'danger');
+        } finally {
+            DOM.confirmDeleteBtn.disabled = false;
+            DOM.confirmDeleteBtn.innerHTML = 'Delete Permanently';
+        }
+    }
+
+
+    // --- Modal Control Functions (Globally Exposed for inline HTML calls) ---
+
+    window.openCreateModal = function() {
+        DOM.modalLabel.textContent = 'Add New Factory';
+        DOM.factoryForm.reset();
+        DOM.factoryId.value = '';
+        DOM.createEditModal.show();
+    }
+
+    window.openEditModal = function(id, name, location, capacity) {
+        DOM.modalLabel.textContent = 'Edit Factory';
+        DOM.factoryId.value = id;
+        DOM.factoryName.value = name;
+        DOM.factoryLocation.value = location;
+        DOM.factoryCapacity.value = capacity;
+        DOM.createEditModal.show();
+    }
+
+    window.openDeleteModal = function(id, name) {
+        DOM.deleteId.value = id;
+        DOM.deleteName.textContent = name;
+        DOM.deleteAlertModal.show();
+    }
+
+    /** Simple custom alert display for non-critical errors (replaces native alert). */
+    function alertUser(title, message, type = 'info') {
+        console.warn(`${title}: ${message}`);
+        const alertEl = document.createElement('div');
+        alertEl.className = `alert alert-${type} alert-dismissible fade show fixed-top w-50 mx-auto mt-4 rounded-3 shadow-lg`;
+        alertEl.innerHTML = `<strong>${title}:</strong> ${message} <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
+        document.body.appendChild(alertEl);
+        setTimeout(() => alertEl.remove(), 5000);
+    }
+
+    // --- Initializers ---
+    document.addEventListener("DOMContentLoaded", initializeFirebase);
+
+    // Sidebar toggle logic
+    document.addEventListener("DOMContentLoaded", function() {
+        const sidebarToggle = document.getElementById("sidebarToggle");
+        const wrapper = document.getElementById("wrapper");
+        const toggleSidebar = () => wrapper.classList.toggle("toggled");
+
+        if (window.innerWidth < 768) { wrapper.classList.add("toggled"); }
+
+        sidebarToggle.addEventListener("click", (e) => {
+            e.preventDefault();
+            toggleSidebar();
+        });
+    });
+
+</script>
+
+</body>
+</html>

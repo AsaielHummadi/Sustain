@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Systain Admin Dashboard</title>
+    <!-- Tailwind CSS (We'll use custom CSS for the dashboard specific styles to match the images, but keep the responsive utility concept) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --dark-green: #1a4d2e;
+            --sidebar-width-open: 280px;
+            --sidebar-width-closed: 70px;
+            --light-green: #e9f5e9;
+            --accent-green: #38a169; /* Slightly brighter green for accents */
+            --header-bg: #fff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa; /* Light background for the main content area */
+            overflow-x: hidden;
+        }
+
+        /* --- Sidebar Styles --- */
+        #sidebar-wrapper {
+            background-color: var(--dark-green);
+            color: #ffffff;
+            min-height: 100vh;
+            width: var(--sidebar-width-open);
+            transition: margin-left 0.3s ease, width 0.3s ease;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        #wrapper.toggled #sidebar-wrapper {
+            width: var(--sidebar-width-closed);
+            /* Hide content when toggled */
+        }
+
+        /* Sidebar Logo/Header */
+        .sidebar-heading {
+            padding: 1rem 1.25rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+            height: 65px; /* Match header height */
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        #wrapper.toggled .sidebar-heading .text-hidden {
+            opacity: 0;
+            transition: opacity 0.1s;
+        }
+
+        .sidebar-nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: background-color 0.2s, color 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar-nav-item:hover, .sidebar-nav-item.active {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-nav-item i {
+            font-size: 1.5rem;
+            min-width: 40px; /* Ensures consistent icon spacing */
+        }
+
+        #wrapper.toggled .sidebar-nav-item span {
+            display: none; /* Hide link text when collapsed */
+        }
+
+        #wrapper.toggled .sidebar-nav-item {
+            justify-content: center;
+            padding: 0.75rem 0.5rem;
+        }
+
+
+        /* --- Page Content Styles --- */
+        #page-content-wrapper {
+            margin-left: var(--sidebar-width-open);
+            width: 100%;
+            transition: margin-left 0.3s ease;
+            padding: 0; /* Remove default padding */
+        }
+
+        #wrapper.toggled #page-content-wrapper {
+            margin-left: var(--sidebar-width-closed);
+        }
+
+        /* --- Header/Top Bar Styles (Matching the light green background) --- */
+        .main-header {
+            background-color: var(--light-green);
+            border-bottom-left-radius: 1.5rem;
+            height: 65px; /* Fixed height for header */
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark-green);
+        }
+
+        /* Toggler button style */
+        .sidebar-toggler {
+            font-size: 1.5rem;
+            color: var(--dark-green);
+            padding: 0.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .sidebar-toggler:hover {
+            transform: scale(1.1);
+        }
+
+        /* --- Main Content Card Styles --- */
+        .content-card {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Custom Dark Green Button Style */
+        .btn-dark-green {
+            background-color: var(--dark-green);
+            color: white;
+            border-color: var(--dark-green);
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .btn-dark-green:hover {
+            background-color: #2e7d32;
+            border-color: #2e7d32;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        /* Table styles */
+        .table th {
+            color: #6c757d;
+            font-weight: 600;
+            border-bottom-width: 2px;
+        }
+
+        /* --- Responsive Adjustments --- */
+        @media (max-width: 768px) {
+            #sidebar-wrapper {
+                margin-left: calc(0px - var(--sidebar-width-open));
+            }
+            #wrapper.toggled #sidebar-wrapper {
+                margin-left: 0;
+                width: var(--sidebar-width-open);
+            }
+            #page-content-wrapper {
+                margin-left: 0;
+            }
+            #wrapper.toggled #page-content-wrapper {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="d-flex" id="wrapper">
+
+    <!-- Sidebar (Left Navigation) -->
+    <div id="sidebar-wrapper">
+        <div class="sidebar-heading d-flex align-items-center">
+            <i class="bi bi-gear-fill me-3 text-white"></i>
+            <span class="text-hidden">Systain</span>
+        </div>
+        <div class="list-group list-group-flush pt-3">
+            <!-- Home/Dashboard -->
+            <a href="#" class="sidebar-nav-item">
+                <i class="bi bi-house-door-fill"></i>
+                <span class="ms-3 text-hidden">Dashboard</span>
+            </a>
+            <!-- Factories Management (Active) -->
+            <a href="#" class="sidebar-nav-item active">
+                <i class="bi bi-building-fill"></i>
+                <span class="ms-3 text-hidden">Factories Management</span>
+            </a>
+            <!-- Users -->
+            <a href="#" class="sidebar-nav-item">
+                <i class="bi bi-people-fill"></i>
+                <span class="ms-3 text-hidden">Users</span>
+            </a>
+            <!-- Emissions Log -->
+            <a href="#" class="sidebar-nav-item">
+                <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                <span class="ms-3 text-hidden">Emissions Log</span>
+            </a>
+            <!-- Billing/Subscription -->
+            <a href="#" class="sidebar-nav-item">
+                <i class="bi bi-credit-card-fill"></i>
+                <span class="ms-3 text-hidden">Billing & Plan</span>
+            </a>
+        </div>
+
+        <!-- Bottom Link (Profile/Logout) -->
+        <div class="position-absolute bottom-0 w-100 p-2">
+            <a href="#" class="sidebar-nav-item">
+                <i class="bi bi-person-circle"></i>
+                <span class="ms-3 text-hidden">Profile/Logout</span>
+            </a>
+        </div>
+    </div>
+    <!-- /#sidebar-wrapper -->
+
+    <!-- Page Content Wrapper -->
+    <div id="page-content-wrapper" class="flex-grow-1">
+
+        <!-- Top Header/Navbar -->
+        <nav class="main-header navbar navbar-expand-lg px-4 border-0 d-flex justify-content-between align-items-center">
+            <!-- Sidebar Toggle Button -->
+            <button class="sidebar-toggler" id="sidebarToggle" aria-label="Toggle Sidebar">
+                <i class="bi bi-list"></i>
+            </button>
+
+            <h1 class="header-title d-none d-sm-block me-auto ps-3">Factories Management</h1>
+
+            <!-- Search Icon -->
+            <button class="sidebar-toggler" aria-label="Search">
+                <i class="bi bi-search"></i>
+            </button>
+        </nav>
+
+        <!-- Main Content Area -->
+        <div class="container-fluid p-4 p-md-5">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 fw-bold text-dark d-flex align-items-center">
+                    <i class="bi bi-building-fill me-2" style="font-size: 1.5rem; color: var(--dark-green);"></i>
+                    Factories Management
+                </h2>
+                <!-- Add Factory Button -->
+                <button class="btn btn-dark-green fw-bold py-2 px-3 rounded-3">
+                    <i class="bi bi-plus me-1"></i> Add Factory
+                </button>
+            </div>
+
+            <!-- Factory List Card -->
+            <div class="content-card p-4">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                        <tr>
+                            <th scope="col">Factory Name</th>
+                            <th scope="col">Location</th>
+                            <th scope="col">Code</th>
+                            <th scope="col" class="text-center">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!-- Row 1 - Example from image -->
+                        <tr>
+                            <td>Jubail Main Plant</td>
+                            <td>Jubail</td>
+                            <td>JUB-01</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm text-dark p-1" title="Edit"><i class="bi bi-pencil-fill"></i></button>
+                                <button class="btn btn-sm text-dark p-1" title="Delete"><i class="bi bi-trash-fill"></i></button>
+                            </td>
+                        </tr>
+                        <!-- Row 2 - Example from image -->
+                        <tr>
+                            <td>Jeddah Unit</td>
+                            <td>Jeddah</td>
+                            <td>JED-01</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm text-dark p-1" title="Edit"><i class="bi bi-pencil-fill"></i></button>
+                                <button class="btn btn-sm text-dark p-1" title="Delete"><i class="bi bi-trash-fill"></i></button>
+                            </td>
+                        </tr>
+                        <!-- Row 3 - Placeholder -->
+                        <tr>
+                            <td>Riyadh East Site</td>
+                            <td>Riyadh</td>
+                            <td>RYD-03</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm text-dark p-1" title="Edit"><i class="bi bi-pencil-fill"></i></button>
+                                <button class="btn btn-sm text-dark p-1" title="Delete"><i class="bi bi-trash-fill"></i></button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+        <!-- /Main Content Area -->
+
+    </div>
+    <!-- /#page-content-wrapper -->
+
+</div>
+<!-- /#wrapper -->
+
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // JavaScript to handle the sidebar toggle functionality
+    document.addEventListener("DOMContentLoaded", function() {
+        var sidebarToggle = document.getElementById("sidebarToggle");
+        var wrapper = document.getElementById("wrapper");
+
+        // Initial check for screen size to start with a collapsed or open sidebar
+        function setInitialSidebarState() {
+            if (window.innerWidth < 768) {
+                // On mobile, sidebar is closed by default and slides over content
+                wrapper.classList.remove("toggled");
+            } else {
+                // On desktop, sidebar is open by default
+                wrapper.classList.remove("toggled");
+            }
+        }
+
+        setInitialSidebarState();
+        window.addEventListener('resize', setInitialSidebarState);
+
+
+        // Toggle function on button click
+        sidebarToggle.addEventListener("click", function(e) {
+            e.preventDefault();
+            wrapper.classList.toggle("toggled");
+        });
+
+        // Add a click listener to the entire document to close the sidebar on mobile if clicked outside
+        // This is primarily for small screens where the sidebar overlaps the content
+        document.body.addEventListener("click", function(e) {
+            if (window.innerWidth < 768 && wrapper.classList.contains("toggled")) {
+                // Check if the click is outside the sidebar and not on the toggle button itself
+                if (!document.getElementById("sidebar-wrapper").contains(e.target) && e.target !== sidebarToggle && !sidebarToggle.contains(e.target)) {
+                    // Prevent closing on the first click outside
+                    // For simplicity in this single file, we just toggle it closed
+                    wrapper.classList.remove("toggled");
+                }
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

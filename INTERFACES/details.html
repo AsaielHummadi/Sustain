@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sustain - Subscription Details</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons for Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --dark-green: #1a4d2e;
+            --light-green: #e9f5e9; /* Used for subtle section background and success card */
+            --light-bg: #f8f9fa;
+            --accent-green: #15803D;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light-bg);
+        }
+
+        /* Custom Dark Green Button Style */
+        .btn-dark-green {
+            background-color: var(--dark-green);
+            color: white;
+            border-color: var(--dark-green);
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .btn-dark-green:hover {
+            background-color: #2e7d32;
+            border-color: #2e7d32;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        /* Logo circle container style */
+        .logoC {
+            background: var(--dark-green);
+            border-radius: 100px !important;
+            padding: 5px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Details Card Styling */
+        .details-card {
+            background-color: var(--light-green);
+            border-radius: 1.5rem;
+            padding: 3rem;
+
+            text-align: center;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            max-width: 550px;
+        }
+
+        /* Detail Text Styling */
+        .detail-item {
+            font-size: 1.15rem;
+            line-height: 2.2;
+            text-align: left;
+            margin: 0 auto;
+            max-width: 550px; /* Constrain width for readability */
+        }
+
+        .detail-item strong {
+            font-weight: 700;
+            color: var(--dark-green);
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg bg-white sticky-top py-3">
+    <div class="container-fluid mx-lg-5 mx-3">
+        <a class="navbar-brand d-flex align-items-center" href="index.html">
+            <!-- Placeholder for logo.png -->
+            <div class="logoC me-2">
+                <img src="https://placehold.co/20x20/1a4d2e/ffffff?text=S" alt="Sustain Logo" class="rounded-2">
+            </div>
+            <span class="fw-bold fs-4 text-dark" style="color: var(--dark-green) !important;">Sustain</span>
+        </a>
+    </div>
+</nav>
+
+<!-- Main Details Content -->
+<main class="container flex-grow-1 d-flex align-items-center justify-content-center py-5">
+    <div class="details-card">
+
+        <h2 class="fw-bold mb-4 text-dark">Subscription Details</h2>
+
+        <div class="detail-item text-dark mb-4">
+            <p>Free trial ends on <strong class="text-dark">27 Nov 2025</strong></p>
+            <p class="mb-3">Your first payment will be processed automatically.</p>
+
+            <p class="mb-3">First payment will be on <strong class="text-dark">28 Nov 2025</strong></p>
+
+            <p class="mb-3">Plan: <strong class="text-dark">Small Plan, 3,000 SAR / year</strong></p>
+
+            <hr style="border-color: #d8eadb;">
+
+            <p class="mb-3">Factories Included: <strong class="text-dark">up to 2</strong></p>
+            <p class="mb-3">Users Allowed: <strong class="text-dark">up to 5</strong></p>
+            <p class="mb-3">Payment Method: <strong class="text-dark">Visa •••• 4023</strong></p>
+            <p class="mb-4">Status: <strong class="text-dark">Active Trial</strong></p>
+
+        </div>
+
+        <!-- Action Button -->
+        <button onclick="handleLogin()" class="btn btn-dark-green px-5 py-3 rounded-3 fw-bold mt-2">
+            Log In
+        </button>
+
+        <div id="actionMessage" class="mt-4 small fw-semibold text-muted"></div>
+    </div>
+</main>
+
+<!-- FOOTER SECTION -->
+<footer class="container-fluid py-5 mt-auto" style="background-color: #d8eadb;">
+    <div class="container">
+        <div class="row text-center text-md-start">
+            <!-- Logo & Navigation -->
+            <div class="col-md-3 mb-4">
+                <div class="d-flex align-items-center mb-3 justify-content-center justify-content-md-start">
+                    <div class="logoC me-2">
+                        <img src="https://placehold.co/20x20/1a4d2e/ffffff?text=S" alt="Sustain Logo" class="rounded-2">
+                    </div>
+                    <h5 class="fw-bold mb-0">Systain</h5>
+                </div>
+                <ul class="list-unstyled text-center text-md-start">
+                    <li><a href="#" class="text-dark text-decoration-none d-block mb-1">Home</a></li>
+                    <li><a href="#" class="text-dark text-decoration-none d-block mb-1">About Us</a></li>
+                    <li><a href="#" class="text-dark text-decoration-none d-block mb-1">FAQ</a></li>
+                    <li><a href="#" class="text-dark text-decoration-none d-block">Help Center</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact Section -->
+            <div class="col-md-3 mb-4">
+                <h6 class="fw-bold mb-3">contact us:</h6>
+                <p class="mb-1">
+                    <i class="bi bi-envelope-fill me-2"></i>Support@systain.sa
+                </p>
+                <p class="mb-0">
+                    <i class="bi bi-geo-alt-fill me-2"></i>Jubail Industrial City, Eastern Province, Saudi Arabia
+                </p>
+            </div>
+
+            <!-- Policies & Terms -->
+            <div class="col-md-3 mb-4">
+                <h6 class="fw-bold mb-3">Policies & Terms:</h6>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-dark text-decoration-none d-block mb-1">Privacy Policy</a></li>
+                    <li><a href="#" class="text-dark text-decoration-none d-block mb-1">Terms of Service</a></li>
+                    <li><a href="#" class="text-dark text-decoration-none d-block">Cookie Policy</a></li>
+                </ul>
+            </div>
+
+            <!-- Social Links -->
+            <div class="col-md-3 mb-4">
+                <h6 class="fw-bold mb-3">Follow us:</h6>
+                <div class="d-flex justify-content-center justify-content-md-start gap-3">
+                    <a href="#" class="text-dark fs-5"><i class="bi bi-linkedin"></i></a>
+                    <a href="#" class="text-dark fs-5"><i class="bi bi-x"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Copyright -->
+        <div class="text-center mt-4">
+            <small class="fw-bold">&copy; 2025 Systain. All rights reserved.</small>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Function to simulate login action
+    function handleLogin() {
+        const actionMessage = document.getElementById('actionMessage');
+        actionMessage.textContent = 'Redirecting to your login page... (Simulation)';
+        actionMessage.classList.remove('d-none');
+        // In a real application: window.location.href = '/login';
+    }
+</script>
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

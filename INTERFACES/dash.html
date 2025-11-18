@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Systain Sustainability Dashboard</title>
+    <!-- Tailwind CSS (We use Bootstrap/custom CSS for the dashboard specific styles) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- APEXCHARTS for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+    <style>
+        :root {
+            --dark-green: #1a4d2e;
+            --sidebar-width-open: 280px;
+            --sidebar-width-closed: 70px;
+            --light-green: #e9f5e9;
+            --accent-green: #38a169; /* Slightly brighter green for accents */
+            --header-bg: #fff;
+            --warning-yellow: #ffc107;
+            --success-green: #28a745;
+            --scope-1: #1a4d2e;
+            --scope-2: #38a169;
+            --scope-3: #6c757d;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+            overflow-x: hidden;
+        }
+
+        /* --- Sidebar Styles --- */
+        #sidebar-wrapper {
+            background-color: var(--dark-green);
+            color: #ffffff;
+            min-height: 100vh;
+            width: var(--sidebar-width-open);
+            transition: margin-left 0.3s ease, width 0.3s ease;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        #wrapper.toggled #sidebar-wrapper {
+            width: var(--sidebar-width-closed);
+        }
+
+        .sidebar-heading {
+            padding: 1rem 1.25rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+            height: 65px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        #wrapper.toggled .sidebar-heading .text-hidden {
+            opacity: 0;
+            transition: opacity 0.1s;
+        }
+
+        .sidebar-nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: background-color 0.2s, color 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar-nav-item:hover, .sidebar-nav-item.active {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-nav-item i {
+            font-size: 1.5rem;
+            min-width: 40px;
+        }
+
+        #wrapper.toggled .sidebar-nav-item span {
+            display: none;
+        }
+
+        #wrapper.toggled .sidebar-nav-item {
+            justify-content: center;
+            padding: 0.75rem 0.5rem;
+        }
+
+
+        /* --- Page Content Styles --- */
+        #page-content-wrapper {
+            margin-left: var(--sidebar-width-open);
+            width: 100%;
+            transition: margin-left 0.3s ease;
+            padding: 0;
+        }
+
+        #wrapper.toggled #page-content-wrapper {
+            margin-left: var(--sidebar-width-closed);
+        }
+
+        /* --- Header/Top Bar Styles --- */
+        .main-header {
+            background-color: var(--light-green);
+            border-bottom-left-radius: 1.5rem;
+            height: 65px;
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark-green);
+        }
+
+        /* Toggler button style */
+        .sidebar-toggler {
+            font-size: 1.5rem;
+            color: var(--dark-green);
+            padding: 0.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        /* --- Dashboard Cards --- */
+        .kpi-card {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+        }
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        }
+        .kpi-title {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        .kpi-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--dark-green);
+            line-height: 1.2;
+        }
+        .kpi-icon {
+            font-size: 2.5rem;
+            color: var(--accent-green);
+        }
+
+        /* --- Chart Card --- */
+        .chart-card {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            /* Removed height: 100% to ensure chart content dictates size, fixing overflow */
+        }
+
+        /* Progress Bar Styling */
+        .goal-progress-bar {
+            height: 10px;
+            border-radius: 5px;
+        }
+        .bg-custom-green {
+            background-color: var(--accent-green) !important;
+        }
+
+        /* Custom legend colors for scopes */
+        .badge-scope-1 { background-color: var(--scope-1) !important; }
+        .badge-scope-2 { background-color: var(--scope-2) !important; }
+        .badge-scope-3 { background-color: var(--scope-3) !important; }
+
+        /* --- Responsive Adjustments --- */
+        @media (max-width: 768px) {
+            #sidebar-wrapper {
+                margin-left: calc(0px - var(--sidebar-width-open));
+            }
+            #wrapper.toggled #sidebar-wrapper {
+                margin-left: 0;
+                width: var(--sidebar-width-open);
+            }
+            #page-content-wrapper {
+                margin-left: 0;
+            }
+            #wrapper.toggled #page-content-wrapper {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="d-flex" id="wrapper">
+
+    <!-- Sidebar (Left Navigation) -->
+    <div id="sidebar-wrapper">
+        <div class="sidebar-heading p-3 m-3 d-flex align-items-center">
+            <img src="logo.png">
+            <span class="text-hidden ms-2">Systain</span>
+        </div>
+        <div class="list-group list-group-flush pt-3">
+            <!-- Dashboard (Active) -->
+            <a href="#" class="sidebar-nav-item active">
+                <i class="bi bi-house-door-fill"></i>
+                <span class="ms-3 text-hidden">Dashboard</span>
+            </a>
+            <!-- Factories Management -->
+            <a href="#" class="sidebar-nav-item">
+                <i class="bi bi-building-fill"></i>
+                <span class="ms-3 text-hidden">Factories Management</span>
+            </a>
+            <!-- Goals (New Link based on DB) -->
+            <a href="#" class="sidebar-nav-item">
+                <i class="bi bi-bullseye"></i>
+                <span class="ms-3 text-hidden">Goals & Targets</span>
+            </a>
+            <!-- Emissions Log -->
+            <a href="#" class="sidebar-nav-item">
+                <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                <span class="ms-3 text-hidden">Emissions Log</span>
+            </a>
+            <!-- Users -->
+            <a href="#" class="sidebar-nav-item">
+                <i class="bi bi-people-fill"></i>
+                <span class="ms-3 text-hidden">Users</span>
+            </a>
+            <!-- Billing/Subscription -->
+            <a href="#" class="sidebar-nav-item">
+                <i class="bi bi-credit-card-fill"></i>
+                <span class="ms-3 text-hidden">Billing & Plan</span>
+            </a>
+        </div>
+
+        <!-- Bottom Link (Profile/Logout) -->
+        <div class="position-absolute bottom-0 w-100 p-2">
+            <a href="#" class="sidebar-nav-item">
+                <i class="bi bi-person-circle"></i>
+                <span class="ms-3 text-hidden">Profile/Logout</span>
+            </a>
+        </div>
+    </div>
+    <!-- /#sidebar-wrapper -->
+
+    <!-- Page Content Wrapper -->
+    <div id="page-content-wrapper" class="flex-grow-1">
+
+        <!-- Top Header/Navbar -->
+        <nav class="main-header navbar navbar-expand-lg px-4 border-0 d-flex justify-content-between align-items-center">
+            <!-- Sidebar Toggle Button -->
+            <button class="sidebar-toggler" id="sidebarToggle" aria-label="Toggle Sidebar">
+                <i class="bi bi-list"></i>
+            </button>
+
+            <h1 class="header-title d-none d-sm-block me-auto ps-3">Organization Overview</h1>
+
+            <!-- User/Search placeholder -->
+            <button class="sidebar-toggler" aria-label="Search">
+                <i class="bi bi-search"></i>
+            </button>
+        </nav>
+
+        <!-- Main Content Area -->
+        <div class="container-fluid p-4 p-md-5">
+            <h2 class="h3 fw-bold text-dark mb-4">Emissions Summary (2025)</h2>
+
+            <!-- KPI Cards Row -->
+            <div class="row g-4 mb-5">
+                <!-- KPI 1: Total CO2e -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="kpi-card d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="kpi-title mb-1">Total CO2e Emissions</p>
+                            <h3 class="kpi-value">12,450 t</h3>
+                            <span class="text-success fw-bold">+4% vs Last Year</span>
+                        </div>
+                        <i class="bi bi-cloud-haze2-fill kpi-icon"></i>
+                    </div>
+                </div>
+                <!-- KPI 2: Emission Goals Progress -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="kpi-card d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="kpi-title mb-1">Active Reduction Goals</p>
+                            <h3 class="kpi-value">3 / 4 Goals</h3>
+                            <span class="text-warning fw-bold">1 Goal Off Track</span>
+                        </div>
+                        <i class="bi bi-bullseye kpi-icon"></i>
+                    </div>
+                </div>
+                <!-- KPI 3: Scope 1 Emissions -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="kpi-card d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="kpi-title mb-1">Scope 1 Direct Emissions</p>
+                            <h3 class="kpi-value">5,800 t</h3>
+                            <span class="text-muted">Fuel & Process</span>
+                        </div>
+                        <i class="bi bi-thermometer-sun kpi-icon"></i>
+                    </div>
+                </div>
+                <!-- KPI 4: Factories Reporting -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="kpi-card d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="kpi-title mb-1">Factories Reporting</p>
+                            <h3 class="kpi-value">5 / 5</h3>
+                            <span class="text-success fw-bold">100% Data Coverage</span>
+                        </div>
+                        <i class="bi bi-buildings-fill kpi-icon"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="row g-4 mb-5">
+                <!-- Chart 1: Monthly Emissions Trend -->
+                <div class="col-lg-7">
+                    <div class="chart-card">
+                        <h4 class="h5 fw-bold mb-3">Monthly Emissions Trend (t CO2e)</h4>
+                        <!-- ApexCharts will render into this div, which is now constrained by its content/config height -->
+                        <div id="monthlyEmissionsChart"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Scope Breakdown Donut Chart -->
+                <div class="col-lg-5">
+                    <div class="chart-card d-flex flex-column align-items-center">
+                        <h4 class="h5 fw-bold mb-3">Emission Scope Breakdown (2025)</h4>
+                        <!-- Wrapper for donut size control -->
+                        <div style="max-height: 350px; max-width: 350px;">
+                            <div id="scopeBreakdownChart"></div>
+                        </div>
+                        <!-- Custom Legend based on ApexCharts colors -->
+                        <div class="mt-3 text-center">
+                            <span class="badge badge-scope-1 text-white">Scope 1 (Direct)</span>
+                            <span class="badge badge-scope-2 text-white">Scope 2 (Energy)</span>
+                            <span class="badge badge-scope-3 text-white">Scope 3 (Indirect)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+        </div>
+        <!-- /Main Content Area -->
+
+    </div>
+    <!-- /#page-content-wrapper -->
+
+</div>
+<!-- /#wrapper -->
+
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Mock Data based on sustainability_db.sql schema
+    const mockData = {
+        monthlyEmissions: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            data: [1000, 950, 1100, 1050, 1200, 1300, 1150, 1180, 1220, 1350, 1400, 1500]
+        },
+        scopeBreakdown: {
+            labels: ['Scope 1 (Direct)', 'Scope 2 (Energy)', 'Scope 3 (Indirect)'],
+            data: [5800, 4100, 2550], // Total: 12450
+            colors: ['#1a4d2e', '#38a169', '#6c757d'] // Dark Green, Accent Green, Gray
+        }
+    };
+
+    // Initialize ApexCharts
+    function initializeCharts() {
+
+        // --- 1. Monthly Emissions Chart (Bar Chart) ---
+        const monthlyEmissionsOptions = {
+            chart: {
+                type: 'bar',
+                height: 350, // Fixed height helps prevent infinite scroll issue
+                toolbar: { show: false },
+                foreColor: '#373d3f' // Text color
+            },
+            series: [{
+                name: 'CO2e (tonnes)',
+                data: mockData.monthlyEmissions.data
+            }],
+            xaxis: {
+                categories: mockData.monthlyEmissions.labels,
+                title: {
+                    text: 'Month'
+                }
+            },
+            yaxis: {
+                title: {
+                    text: 'CO2e (tonnes)'
+                }
+            },
+            colors: ['#38a169'], // Accent Green
+            plotOptions: {
+                bar: {
+                    horizontal: false,
+                    columnWidth: '65%',
+                    borderRadius: 5
+                },
+            },
+            dataLabels: { enabled: false },
+            legend: { show: false },
+            grid: {
+                borderColor: '#f1f1f1',
+            }
+        };
+
+        const monthlyEmissionsChart = new ApexCharts(
+            document.querySelector("#monthlyEmissionsChart"),
+            monthlyEmissionsOptions
+        );
+        monthlyEmissionsChart.render();
+
+        // --- 2. Scope Breakdown Chart (Donut Chart) ---
+        const scopeBreakdownOptions = {
+            chart: {
+                type: 'donut',
+                height: 350,
+                foreColor: '#373d3f'
+            },
+            series: mockData.scopeBreakdown.data,
+            labels: mockData.scopeBreakdown.labels,
+            colors: mockData.scopeBreakdown.colors,
+            dataLabels: {
+                enabled: true,
+                formatter: function (val, opts) {
+                    return opts.w.config.series[opts.seriesIndex] + ' t'
+                },
+                style: {
+                    fontSize: '12px',
+                    colors: ['#fff']
+                }
+            },
+            plotOptions: {
+                pie: {
+                    donut: {
+                        labels: {
+                            show: true,
+                            total: {
+                                showAlways: true,
+                                show: true,
+                                label: 'Total CO2e',
+                                formatter: function (w) {
+                                    return w.globals.seriesTotals.reduce((a, b) => a + b, 0) + ' t'
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            legend: { show: false } // We use a custom HTML legend below the chart
+        };
+
+        const scopeBreakdownChart = new ApexCharts(
+            document.querySelector("#scopeBreakdownChart"),
+            scopeBreakdownOptions
+        );
+        scopeBreakdownChart.render();
+    }
+
+    // --- Sidebar Toggle Logic ---
+    document.addEventListener("DOMContentLoaded", function() {
+        const sidebarToggle = document.getElementById("sidebarToggle");
+        const wrapper = document.getElementById("wrapper");
+
+        function setInitialSidebarState() {
+            if (window.innerWidth < 768) {
+                wrapper.classList.remove("toggled");
+            } else {
+                wrapper.classList.remove("toggled");
+            }
+        }
+
+        setInitialSidebarState();
+        window.addEventListener('resize', setInitialSidebarState);
+
+        sidebarToggle.addEventListener("click", function(e) {
+            e.preventDefault();
+            wrapper.classList.toggle("toggled");
+        });
+
+        // Initialize charts when the DOM and script are ready
+        initializeCharts();
+    });
+</script>
+
+</body>
+</html>
