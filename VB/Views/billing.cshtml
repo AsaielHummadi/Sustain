@@ -1,0 +1,620 @@
+﻿@model Sustain.ViewModels.SubscriptionVMs.BillingViewModel
+@{
+    ViewData["Title"] = "Billing & Subscription";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<div class="container-fluid p-4 p-md-5" id="billing-page">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 fw-bold text-dark mb-2">Billing & Subscription</h1>
+                    <p class="text-muted">View and manage your organization's plan, invoices, and renewal.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary px-3" onclick="window.print()">
+                        <i class="bi bi-printer me-1"></i> Print Page
+                    </button>
+                    @if (Model.Subscription != null && Model.Subscription.SubscriptionStatus == "Active")
+                    {
+                        <button type="button" class="btn btn-dark-green px-4" data-bs-toggle="modal" data-bs-target="#renewPlanModal">
+                            <i class="bi bi-arrow-repeat me-1"></i> Renew Plan
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Plan Card -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-credit-card me-2 text-success"></i>
+                        Current Subscription
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    @if (Model.Subscription != null)
+                    {
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+                            <div>
+                                <h4 class="mb-1">
+                                    @(Model.Subscription.SubscriptionPlan?.SubscriptionPlanName ?? "Unknown Plan")
+                                    @if (Model.Subscription.SubscriptionPlan?.SubscriptionPlanType == "trial")
+                                    {
+                                        <span class="badge bg-warning text-dark ms-2">Free Trial</span>
+                                    }
+                                    else if (Model.Subscription.SubscriptionPlan?.SubscriptionPlanType == "paid")
+                                    {
+                                        <span class="badge bg-success ms-2">Paid</span>
+                                    }
+                                </h4>
+                                <p class="text-muted mb-1">
+                                    <i class="bi bi-calendar-check me-1"></i> Started:
+                                    @Model.Subscription.SubscriptionStartDate.ToString("MMM dd, yyyy")
+                                </p>
+                                <p class="mb-0">
+                                    @{
+                                        var today = DateOnly.FromDateTime(DateTime.Now);
+                                        var endDate = Model.Subscription.SubscriptionEndDate;
+                                        var isExpired = endDate.HasValue && endDate.Value < today;
+                                        var endDateTime = endDate.HasValue ? new DateTime(endDate.Value.Year, endDate.Value.Month, endDate.Value.Day) : DateTime.Now;
+                                        var daysUntilExpiry = endDate.HasValue ? (endDateTime - DateTime.Now).TotalDays : 0;
+                                        var isExpiringSoon = !isExpired && daysUntilExpiry > 0 && daysUntilExpiry <= 7;
+                                    }
+                                    <i class="bi bi-calendar-x me-1 text-danger"></i> Expires:
+                                    <strong class="@(isExpired ? "text-danger" : "")">
+                                        @(Model.Subscription.SubscriptionEndDate?.ToString("MMM dd, yyyy") ?? "N/A")
+                                    </strong>
+                                    @if (isExpired)
+                                    {
+                                        <span class="badge bg-danger ms-2">Expired</span>
+                                    }
+                                    else if (isExpiringSoon)
+                                    {
+                                        <span class="badge bg-warning text-dark ms-2">Expiring Soon</span>
+                                    }
+                                </p>
+                            </div>
+                            <div class="mt-3 mt-md-0 text-end">
+                                <h3 class="mb-1">
+                                    @if (Model.Subscription.SubscriptionPlan?.SubscriptionPlanType == "free")
+                                    {
+                                        <text>Free</text>
+                                    }
+                                    else
+                                    {
+                                        @(Model.Subscription.SubscriptionPlan?.SubscriptionPlanPrice?.ToString("N2") ?? "0.00") <text>SAR</text>
+                                        <small class="text-muted">/@(Model.Subscription.SubscriptionPlan?.SubscriptionPlanDuration >= 12 ? "year" : "month")</small>
+                                    }
+                                </h3>
+                                <span class="badge bg-light text-dark">
+                                    @(Model.Subscription.SubscriptionPlan?.SubscriptionPlanUserMax ?? 0) users •
+                                    @(Model.Subscription.SubscriptionPlan?.SubscriptionPlanFactoryMax ?? 0) factories
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle me-2"></i>
+                            You can upgrade or renew anytime. Unused credits (if any) will be prorated.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="bi bi-credit-card display-4 text-muted mb-3"></i>
+                            <h5>No Active Subscription</h5>
+                            <p class="text-muted">Your organization does not have an active plan.</p>
+                            <a href="@Url.Action("ShowSubscriptionForm", "Subscription")" class="btn btn-dark-green">
+                                <i class="bi bi-bag-plus me-1"></i> Subscribe Now
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Usage Summary -->
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-bar-chart-line me-2 text-primary"></i> Usage Summary
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <ul class="list-unstyled mb-0">
+                        <li class="d-flex justify-content-between align-items-center mb-3">
+                            <span><i class="bi bi-people me-2 text-muted"></i> Team Members</span>
+                            <strong>@ViewBag.UserCount / @(Model.Subscription?.SubscriptionPlan?.SubscriptionPlanUserMax ?? 0)</strong>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center mb-3">
+                            <span><i class="bi bi-building me-2 text-muted"></i> Factories</span>
+                            <strong>@ViewBag.FactoryCount / @(Model.Subscription?.SubscriptionPlan?.SubscriptionPlanFactoryMax ?? 0)</strong>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-file-earmark-text me-2 text-muted"></i> Emissions Logged</span>
+                            <strong>@ViewBag.EmissionRecordsCount</strong>
+                        </li>
+                    </ul>
+                    @if (Model.Subscription != null && Model.Subscription.SubscriptionPlan?.SubscriptionPlanType == "free")
+                    {
+                        <div class="mt-4 alert alert-warning small p-3">
+                            <i class="bi bi-lightbulb me-1"></i>
+                            Upgrade to a paid plan for unlimited factories, advanced analytics, & priority support.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoices & Payments -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">Invoice History</h5>
+                    @if (Model.Invoices.Count > 0)
+                    {
+                        <small class="text-muted">@Model.Invoices.Count invoices</small>
+                    }
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.Invoices.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Invoice #</th>
+                                        <th>Date</th>
+                                        <th>Plan</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Payment Method</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var invoice in Model.Invoices)
+                                    {
+                                        var latestPayment = invoice.Payments?.OrderByDescending(p => p.PaymentDate).FirstOrDefault();
+                                        var statusClass = invoice.InvoiceStatus == "Paid" ? "bg-success" :
+                                        invoice.InvoiceStatus == "Pending" ? "bg-warning text-dark" :
+                                        invoice.InvoiceStatus == "Overdue" ? "bg-danger" : "bg-secondary";
+
+                                        <tr>
+                                            <td><code>#@invoice.InvoiceId.ToString().PadLeft(6, '0')</code></td>
+                                            <td>@invoice.InvoiceDate.ToString("MMM dd, yyyy")</td>
+                                            <td>@invoice.Subscription?.SubscriptionPlan?.SubscriptionPlanName</td>
+                                            <td class="fw-bold">@invoice.InvoiceTotalAmount.ToString("N2") SAR</td>
+                                            <td>
+                                                <span class="badge @statusClass">
+                                                    @invoice.InvoiceStatus
+                                                </span>
+                                            </td>
+                                            <td>
+                                                @(latestPayment?.PaymentMethod ?? "—")
+                                            </td>
+                                            <td class="text-end">
+                                                <!-- Print Button -->
+                                                <button class="btn btn-sm btn-outline-secondary me-1" data-bs-toggle="modal" data-bs-target="#printInvoiceModal"
+                                                        data-invoice-id="@invoice.InvoiceId"
+                                                        data-invoice-number="@invoice.InvoiceId.ToString().PadLeft(6, '0')"
+                                                        data-invoice-date="@invoice.InvoiceDate.ToString("MMM dd, yyyy")"
+                                                        data-plan-name="@invoice.Subscription?.SubscriptionPlan?.SubscriptionPlanName"
+                                                        data-amount="@invoice.InvoiceTotalAmount.ToString("N2")"
+                                                        data-status="@invoice.InvoiceStatus"
+                                                        data-payment-method="@(latestPayment?.PaymentMethod ?? "—")">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <!-- Renew Button (for unpaid/pending invoices) -->
+                                                @if (invoice.InvoiceStatus == "Pending" || invoice.InvoiceStatus == "Overdue")
+                                                {
+                                                    <button class="btn btn-sm btn-primary"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#renewFromInvoiceModal"
+                                                            data-invoice-id="@invoice.InvoiceId"
+                                                            data-invoice-amount="@invoice.InvoiceTotalAmount"
+                                                            data-subscription-id="@invoice.Subscription?.SubscriptionId">
+                                                        <i class="bi bi-arrow-repeat"></i> Renew
+                                                    </button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-receipt display-4 text-muted mb-3"></i>
+                            <h5>No Invoices Yet</h5>
+                            <p class="text-muted">You haven't made any payments.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Renew Plan Modal (for main renew button) -->
+<div class="modal fade" id="renewPlanModal" tabindex="-1" aria-labelledby="renewPlanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h3 class="modal-title fw-bold" id="renewPlanModalLabel">
+                    <i class="bi bi-arrow-repeat text-success me-2"></i> Renew Your Plan
+                </h3>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" asp-controller="Subscription" asp-action="ProcessRenewal">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="OrganizationId" value="@Model.Organization.OrganizationId" />
+                <input type="hidden" name="RenewSubscriptionId" value="@Model.Subscription?.SubscriptionId" />
+
+                <div class="modal-body pt-0">
+                    <p class="text-muted mb-4">
+                        Choose a plan to renew your subscription for another year:
+                    </p>
+
+                    <div class="row g-4">
+                        @if (ViewBag.PaidPlans != null)
+                        {
+                            @foreach (var plan in ViewBag.PaidPlans)
+                            {
+                                var borderClass = plan.SubscriptionPlanName == "Pro" ? "border-success" : "border-secondary";
+                                <div class="col-md-4">
+                                    <div class="card h-100 @borderClass">
+                                        <div class="card-header bg-light">
+                                            <h5 class="mb-0 fw-bold">
+                                                @plan.SubscriptionPlanName
+                                                @if (plan.SubscriptionPlanName == "Pro")
+                                                {
+                                                    <span class="badge bg-success ms-2">Popular</span>
+                                                }
+                                            </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <h5 class="mb-2">@(plan.SubscriptionPlanPrice?.ToString("N2") ?? "0.00") SAR</h5>
+                                            <p class="text-muted small mb-3">@(plan.SubscriptionPlanDuration)-month billing</p>
+                                            <ul class="list-unstyled mb-4">
+                                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Up to @plan.SubscriptionPlanUserMax users</li>
+                                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Up to @plan.SubscriptionPlanFactoryMax factories</li>
+                                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Advanced analytics</li>
+                                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Priority support</li>
+                                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> API access</li>
+                                            </ul>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="SubscriptionPlanId" id="plan_@plan.SubscriptionPlanId" value="@plan.SubscriptionPlanId" required />
+                                                <label class="form-check-label" for="plan_@plan.SubscriptionPlanId">
+                                                    Select this plan
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="col-12">
+                                <div class="alert alert-warning text-center">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    No paid plans available for renewal.
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <!-- Payment Section -->
+                    <h5 class="mb-3"><i class="bi bi-credit-card me-2 text-info"></i> Payment Details</h5>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Card Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-credit-card text-muted"></i></span>
+                            <input type="text" class="form-control" name="CardNumber" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCardNumber(this)" />
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Expiry Date</label>
+                            <input type="text" class="form-control" name="ExpiryDate" placeholder="MM/YY" maxlength="5" oninput="formatExpiry(this)" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">CVC</label>
+                            <input type="text" class="form-control" name="Cvc" placeholder="123" maxlength="4" />
+                        </div>
+                    </div>
+
+                    <div class="alert alert-light small p-3 mb-0">
+                        <i class="bi bi-lock me-1"></i> Your payment is securely processed via Stripe. We do not store full card details.
+                    </div>
+                </div>
+
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-success px-4" @(ViewBag.PaidPlans == null ? "disabled" : "")>
+                        <i class="bi bi-check2-circle me-1"></i> Confirm & Pay
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Renew From Invoice Modal (for renew button in invoice row) -->
+<div class="modal fade" id="renewFromInvoiceModal" tabindex="-1" aria-labelledby="renewFromInvoiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h3 class="modal-title fw-bold" id="renewFromInvoiceModalLabel">
+                    <i class="bi bi-arrow-repeat text-success me-2"></i> Renew Invoice Payment
+                </h3>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" asp-controller="Subscription" asp-action="ProcessRenewal">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="OrganizationId" value="@Model.Organization.OrganizationId" />
+                <input type="hidden" name="RenewSubscriptionId" id="modal_renew_subscription_id" />
+                <input type="hidden" name="InvoiceId" id="modal_invoice_id" />
+
+                <div class="modal-body pt-0">
+                    <p class="text-muted mb-4">
+                        Pay the outstanding invoice #<span id="modal_invoice_number"></span> for <strong id="modal_invoice_amount"></strong> SAR:
+                    </p>
+
+                    <!-- Payment Section -->
+                    <h5 class="mb-3"><i class="bi bi-credit-card me-2 text-info"></i> Payment Details</h5>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Card Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-credit-card text-muted"></i></span>
+                            <input type="text" class="form-control" name="CardNumber" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCardNumber(this)" />
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Expiry Date</label>
+                            <input type="text" class="form-control" name="ExpiryDate" placeholder="MM/YY" maxlength="5" oninput="formatExpiry(this)" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">CVC</label>
+                            <input type="text" class="form-control" name="Cvc" placeholder="123" maxlength="4" />
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="saveCardInvoice" checked />
+                        <label class="form-check-label" for="saveCardInvoice">
+                            Save this card for future payments
+                        </label>
+                    </div>
+
+                    <div class="alert alert-light small p-3 mb-0">
+                        <i class="bi bi-lock me-1"></i> Your payment is securely processed via Stripe. We do not store full card details.
+                    </div>
+                </div>
+
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="bi bi-check2-circle me-1"></i> Pay Invoice
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Print Invoice Modal -->
+<div class="modal fade" id="printInvoiceModal" tabindex="-1" aria-labelledby="printInvoiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="printInvoiceModalLabel">
+                    <i class="bi bi-receipt me-2 text-success"></i> Invoice #<span id="modal_invoice_number_display"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <h3>INVOICE</h3>
+                </div>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6>From:</h6>
+                        <address>
+                            <strong>Sustain Platform</strong><br />
+                            123 Sustainability St.<br />
+                            Green City, GC 12345<br />
+                            Email: billing@sustain.com
+                        </address>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <h6>To:</h6>
+                        <address>
+                            <strong>@Model.Organization.OrganizationName</strong><br />
+                            @Model.Organization.OrganizationCity<br />
+                        </address>
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p><strong>Invoice Number:</strong> #<span id="modal_invoice_number_content"></span></p>
+                        <p><strong>Invoice Date:</strong> <span id="modal_invoice_date_content"></span></p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <p><strong>Status:</strong> <span class="badge bg-success" id="modal_status_badge"></span></p>
+                        <p><strong>Total Amount:</strong> <span id="modal_amount_content"></span> SAR</p>
+                    </div>
+                </div>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th class="text-end">Amount (SAR)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td id="modal_plan_name_content">Subscription Plan</td>
+                                <td class="text-end" id="modal_amount_content_td"></td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th class="text-end">Total:</th>
+                                <td class="text-end"><strong id="modal_amount_total_content"></strong> SAR</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Payment Information:</h6>
+                        <p><strong>Method:</strong> <span id="modal_payment_method_content"></span></p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <p><strong>Thank you for your business!</strong></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        @@media print {
+            .btn, .modal-header, .modal-footer, .modal, .sidebar-toggler, nav.main-header, .dropdown {
+                display: none !important;
+            }
+
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #ddd;
+            }
+        }
+
+        .input-group-text {
+            background-color: #f8f9fa;
+        }
+
+        .card.border-success {
+            border-width: 2px;
+        }
+
+        .btn-dark-green {
+            background-color: #1a4d2e;
+            border-color: #1a4d2e;
+            color: white;
+        }
+
+            .btn-dark-green:hover {
+                background-color: #164327;
+                border-color: #164327;
+                color: white;
+            }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        function formatCardNumber(input) {
+            let value = input.value.replace(/\D/g, '');
+            let formatted = '';
+            for (let i = 0; i < value.length && i < 16; i++) {
+                if (i > 0 && i % 4 === 0) formatted += ' ';
+                formatted += value[i];
+            }
+            input.value = formatted;
+        }
+
+        function formatExpiry(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length >= 3) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            input.value = value;
+        }
+
+        // Handle Print Invoice Modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const printInvoiceModal = document.getElementById('printInvoiceModal');
+            printInvoiceModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const invoiceId = button.getAttribute('data-invoice-id');
+                const invoiceNumber = button.getAttribute('data-invoice-number');
+                const invoiceDate = button.getAttribute('data-invoice-date');
+                const planName = button.getAttribute('data-plan-name');
+                const amount = button.getAttribute('data-amount');
+                const status = button.getAttribute('data-status');
+                const paymentMethod = button.getAttribute('data-payment-method');
+
+                // Update modal content
+                document.getElementById('modal_invoice_number_display').textContent = invoiceNumber;
+                document.getElementById('modal_invoice_number_content').textContent = invoiceNumber;
+                document.getElementById('modal_invoice_date_content').textContent = invoiceDate;
+                document.getElementById('modal_plan_name_content').textContent = planName;
+                document.getElementById('modal_amount_content').textContent = amount;
+                document.getElementById('modal_amount_content_td').textContent = amount;
+                document.getElementById('modal_amount_total_content').textContent = amount;
+                document.getElementById('modal_payment_method_content').textContent = paymentMethod;
+
+                // Update status badge color based on status
+                const statusBadge = document.getElementById('modal_status_badge');
+                statusBadge.className = 'badge'; // Reset classes
+                if (status === 'Paid') {
+                    statusBadge.classList.add('bg-success');
+                } else if (status === 'Pending') {
+                    statusBadge.classList.add('bg-warning', 'text-dark');
+                } else if (status === 'Overdue') {
+                    statusBadge.classList.add('bg-danger');
+                } else {
+                    statusBadge.classList.add('bg-secondary');
+                }
+                statusBadge.textContent = status;
+            });
+
+            // Handle Renew From Invoice Modal
+            const renewFromInvoiceModal = document.getElementById('renewFromInvoiceModal');
+            renewFromInvoiceModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const invoiceId = button.getAttribute('data-invoice-id');
+                const invoiceAmount = button.getAttribute('data-invoice-amount');
+                const subscriptionId = button.getAttribute('data-subscription-id');
+
+                document.getElementById('modal_invoice_number').textContent = invoiceId.toString().padStart(6, '0');
+                document.getElementById('modal_invoice_amount').textContent = invoiceAmount;
+                document.getElementById('modal_invoice_id').value = invoiceId;
+                document.getElementById('modal_renew_subscription_id').value = subscriptionId;
+            });
+        });
+    </script>
+}

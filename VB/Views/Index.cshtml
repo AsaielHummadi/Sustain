@@ -1,0 +1,468 @@
+﻿@model Sustain.ViewModels.UserVMs.UserIndexViewModel
+@{
+    ViewData["Title"] = "Users Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid p-4 p-md-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        @await Component.InvokeAsync("SubscriptionStatus")
+
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 fw-bold text-dark mb-2">Users Management</h1>
+                    <p class="text-muted">Manage team members and their access</p>
+                </div>
+                @if (ViewBag.CanCreateUser)
+                {
+                    <button type="button" class="btn btn-primary px-4 py-2 rounded-3" data-bs-toggle="modal" data-bs-target="#inviteUserModal">
+                        <i class="bi bi-person-plus me-2"></i>Invite User
+                    </button>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-danger px-4 py-2 rounded-3" disabled title="User limit reached">
+                        <i class="bi bi-person-plus me-2"></i>Invite User
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header p-4 bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Team Members (@Model.Users.Count)</h5>
+                </div>
+                <div class="card-body p-4">
+                    @if (Model.Users.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table id="datatable" class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="50">Avatar</th>
+                                        <th>User</th>
+                                        <th>Role</th>
+                                        <th>Contact</th>
+                                        <th>Status</th>
+                                        <th width="120" class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var user in Model.Users)
+                                    {
+                                        <tr class="@(user.UserStatus != "Active" ? "table-secondary" : "")">
+                                            <td>
+                                                <div class="avatar-circle-sm bg-dark-green text-white">
+                                                    @(user.UserFname.Substring(0, 1).ToUpper() + user.UserLname.Substring(0, 1).ToUpper())
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <strong class="d-block">@user.UserFname @user.UserLname</strong>
+                                                    <small class="text-muted">@user.UserEmail</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge @GetRoleBadgeClass(user.RoleId)">
+                                                    @GetRoleName(user.RoleId)
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-telephone me-1"></i>
+                                                    @(user.UserPhone ?? "Not provided")
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <span class="badge @GetStatusBadgeClass(user.UserStatus)">
+                                                    @user.UserStatus
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex justify-content-center gap-1">
+                                                    <button type="button" class="btn btn-sm btn-outline-dark-green"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editUserModal"
+                                                            data-user-id="@user.UserId"
+                                                            data-user-fname="@user.UserFname"
+                                                            data-user-lname="@user.UserLname"
+                                                            data-user-email="@user.UserEmail"
+                                                            data-user-phone="@user.UserPhone"
+                                                            data-user-status="@user.UserStatus"
+                                                            data-role-id="@user.RoleId"
+                                                            title="Edit User">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                                            onclick="confirmDelete('@user.UserFname @user.UserLname', '@Url.Action("Destroy", "User", new { id = user.UserId })')"
+                                                            title="Delete User">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-people display-1 text-muted mb-3"></i>
+                            <h4 class="text-muted">No Team Members Yet</h4>
+                            <p class="text-muted mb-4">Invite Sustainability Officers or Factory Operators to join your organization.</p>
+                            <button type="button" class="btn btn-dark-green px-4 py-2 rounded-3" data-bs-toggle="modal" data-bs-target="#inviteUserModal">
+                                <i class="bi bi-person-plus me-2"></i>Invite First User
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invite User Modal -->
+<div class="modal fade" id="inviteUserModal" tabindex="-1" aria-labelledby="inviteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow-lg border-0 rounded-4">
+            <div class="modal-header bg-primary text-white border-0 rounded-top-4 p-4">
+                <h3 class="modal-title fw-bolder" id="inviteUserModalLabel">
+                    <i class="bi bi-person-plus-fill me-2 fs-4"></i>Welcome a New Team Member!
+                </h3>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form method="POST" asp-action="SendInvitation">
+                @Html.AntiForgeryToken()
+                <div class="modal-body p-5">
+                    <div class="alert alert-info border-info rounded-3 mb-4 p-3" role="alert">
+                        <h4 class="alert-heading fs-5 fw-bold text-dark-green"><i class="bi bi-lightbulb me-2"></i>Quick Guide</h4>
+                        <p class="mb-0 text-secondary">Fill in the details below to send a secure invitation link. They'll be able to join your team right away!</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="InvitedEmail" class="form-label fw-bold text-secondary">
+                            <i class="bi bi-envelope-open me-2 text-success"></i>Team Member's Email
+                        </label>
+                        <input type="email" class="form-control form-control-lg border-success" id="InvitedEmail" name="InvitedEmail"
+                               placeholder="e.g., jane.doe@company.com" required aria-describedby="emailHelp">
+                        <div id="emailHelp" class="form-text text-muted mt-2">The official email where they will receive their unique invitation.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="RoleId" class="form-label fw-bold text-secondary">
+                            <i class="bi bi-person-badge-fill me-2 text-success"></i>Select Their Role
+                        </label>
+                        <select class="form-select form-select-lg border-success" id="RoleId" name="RoleId" required aria-describedby="roleHelp">
+                            <option value="" disabled selected>— Choose the perfect role —</option>
+                            <option value="@Sustain.Utilities.Constants.Roles.SUSTAINABILITY_OFFICER">Sustainability Officer</option>
+                            <option value="@Sustain.Utilities.Constants.Roles.FACTORY_OPERATOR">Factory Operator</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="FactoryId" class="form-label fw-bold text-secondary">
+                            <i class="bi bi-building-fill me-2 text-success"></i>Assign to Factory <span class="badge bg-light text-secondary ms-2">Optional but Recommended</span>
+                        </label>
+                        <select class="form-select form-select-lg border-success" id="FactoryId" name="FactoryId">
+                            <option value="" selected>No specific factory (Global View)</option>
+                            @foreach (var factory in Model.Factories)
+                            {
+                                <option value="@factory.FactoryId">@factory.FactoryName (@factory.FactoryCode)</option>
+                            }
+                        </select>
+                        <div class="form-text mt-2">
+                            **Tip:** Assigning a factory is highly recommended for **Factory Operators** to limit their data entry to the relevant location.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer justify-content-between p-4 border-top-0">
+                    <button type="button" class="btn btn-danger px-4" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Maybe Later
+                    </button>
+                    <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm">
+                        <i class="bi bi-send-fill me-2"></i>Send Invitation Now
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="editUserModalLabel">
+                    <i class="bi bi-pencil me-2"></i>Edit Team Member
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" id="editUserForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" id="edit_UserId" name="id">
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_UserFname" class="form-label fw-semibold">First Name</label>
+                            <input type="text" class="form-control" id="edit_UserFname" name="UserFname" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_UserLname" class="form-label fw-semibold">Last Name</label>
+                            <input type="text" class="form-control" id="edit_UserLname" name="UserLname" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit_UserEmail" class="form-label fw-semibold">Email Address</label>
+                        <input type="email" class="form-control" id="edit_UserEmail" name="UserEmail" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit_UserPhone" class="form-label fw-semibold">Phone Number</label>
+                        <input type="text" class="form-control" id="edit_UserPhone" name="UserPhone" placeholder="+966 5X XXX XXXX">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_UserStatus" class="form-label fw-semibold">Status</label>
+                            <select class="form-select" id="edit_UserStatus" name="UserStatus" required>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                                <option value="Suspended">Suspended</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_RoleId" class="form-label fw-semibold">Role</label>
+                            <select class="form-select" id="edit_RoleId" name="RoleId" required>
+                                <option value="@Sustain.Utilities.Constants.Roles.SUSTAINABILITY_OFFICER">Sustainability Officer</option>
+                                <option value="@Sustain.Utilities.Constants.Roles.FACTORY_OPERATOR">Factory Operator</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-dark-green">
+                        <i class="bi bi-check-circle me-1"></i>Update User
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .avatar-circle-sm {
+            background: #1a4d2e;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.875rem;
+            color: white;
+        }
+
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table td {
+            vertical-align: middle;
+            padding: 1rem 0.75rem;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border-radius: 0.5rem;
+        }
+
+        .card-header {
+            border-bottom: 1px solid #e9ecef;
+            padding: 1rem 1.25rem;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(26, 77, 46, 0.04);
+        }
+
+        .modal-content {
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #e9ecef;
+            padding: 1.5rem;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #e9ecef;
+            padding: 1rem 1.5rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: 0.375rem;
+            border: 1px solid #ddd;
+            transition: all 0.2s ease;
+        }
+
+            .form-control:focus, .form-select:focus {
+                border-color: var(--dark-green);
+                box-shadow: 0 0 0 0.2rem rgba(26, 77, 46, 0.1);
+            }
+
+        .form-control-lg, .form-select-lg {
+            padding: 0.75rem 1rem;
+        }
+
+        .btn {
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.35em 0.65em;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Edit User Modal Handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const editUserModal = document.getElementById('editUserModal');
+
+            editUserModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const userId = button.getAttribute('data-user-id');
+                const userFName = button.getAttribute('data-user-fname');
+                const userLName = button.getAttribute('data-user-lname');
+                const userEmail = button.getAttribute('data-user-email');
+                const userPhone = button.getAttribute('data-user-phone');
+                const userStatus = button.getAttribute('data-user-status');
+                const roleId = button.getAttribute('data-role-id');
+
+                // Update modal content
+                document.getElementById('edit_UserId').value = userId;
+                document.getElementById('edit_UserFname').value = userFName;
+                document.getElementById('edit_UserLname').value = userLName;
+                document.getElementById('edit_UserEmail').value = userEmail;
+                document.getElementById('edit_UserPhone').value = userPhone || '';
+                document.getElementById('edit_UserStatus').value = userStatus;
+                document.getElementById('edit_RoleId').value = roleId;
+
+                // Update form action
+                document.getElementById('editUserForm').action = '/User/Update/' + userId;
+            });
+        });
+
+        // Delete Confirmation
+        function confirmDelete(userName, deleteUrl) {
+            if (confirm('Are you sure you want to delete "' + userName + '"? This action cannot be undone.')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = deleteUrl;
+
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '__RequestVerificationToken';
+                csrfToken.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                const methodField = document.createElement('input');
+                methodField.type = 'hidden';
+                methodField.name = '_method';
+                methodField.value = 'DELETE';
+
+                form.appendChild(csrfToken);
+                form.appendChild(methodField);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+}
+
+@functions {
+    private string GetRoleBadgeClass(int roleId)
+    {
+        return roleId switch
+        {
+            Sustain.Utilities.Constants.Roles.SUSTAINABILITY_OFFICER => "bg-info",
+            Sustain.Utilities.Constants.Roles.FACTORY_OPERATOR => "bg-warning text-dark",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetRoleName(int roleId)
+    {
+        return roleId switch
+        {
+            Sustain.Utilities.Constants.Roles.SUSTAINABILITY_OFFICER => "Sustainability Officer",
+            Sustain.Utilities.Constants.Roles.FACTORY_OPERATOR => "Factory Operator",
+            _ => "Unknown Role"
+        };
+    }
+
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Active" => "bg-success",
+            "Inactive" => "bg-secondary",
+            "Suspended" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}

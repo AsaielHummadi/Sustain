@@ -1,0 +1,154 @@
+﻿@model Sustain.ViewModels.InvitationVMs.AcceptInvitationViewModel
+@{
+    ViewData["Title"] = "Complete Registration";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<div class="container-fluid py-5" style="background-color: #f8f9fa; min-height: 100vh;">
+    <div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-lg rounded-3">
+                <div class="card-body p-5">
+                    <!-- Logo and Title -->
+                    <div class="text-center mb-4">
+                        <div class="d-flex justify-content-center align-items-center mb-3">
+                            <img src="~/logo.png" alt="Sustain" class="me-2 logoC">
+                            <span class="fw-bold fs-3" style="color: var(--dark-green);">Systain</span>
+                        </div>
+                        <h2 class="fw-bold text-dark mb-2">Join @Model.OrganizationName</h2>
+                        <p class="text-muted">Complete your registration</p>
+                    </div>
+
+                    <!-- Invitation Details -->
+                    <div class="alert alert-info mb-4">
+                        <div class="d-flex">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <div>
+                                <strong>Invitation Details:</strong><br>
+                                Email: @Model.InvitedEmail<br>
+                                Role: @Model.RoleName<br>
+                                Organization: @Model.OrganizationName
+                                @if (!string.IsNullOrEmpty(Model.FactoryName))
+                                {
+                                    <br>
+                                
+                                    @:Factory: @Model.FactoryName
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Registration Form -->
+                    <form method="POST" asp-action="CompleteRegistration">
+                        @Html.AntiForgeryToken()
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="UserFname" class="form-label fw-semibold">First Name</label>
+                                <input type="text" class="form-control @(ViewData.ModelState["UserFname"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                                       id="UserFname" name="UserFname"
+                                       value="@Model.UserFname"
+                                       placeholder="Enter your first name" required>
+                                @if (ViewData.ModelState["UserFname"]?.Errors.Count > 0)
+                                {
+                                    <div class="invalid-feedback">@ViewData.ModelState["UserFname"].Errors[0].ErrorMessage</div>
+                                }
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="UserLname" class="form-label fw-semibold">Last Name</label>
+                                <input type="text" class="form-control @(ViewData.ModelState["UserLname"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                                       id="UserLname" name="UserLname"
+                                       value="@Model.UserLname"
+                                       placeholder="Enter your last name" required>
+                                @if (ViewData.ModelState["UserLname"]?.Errors.Count > 0)
+                                {
+                                    <div class="invalid-feedback">@ViewData.ModelState["UserLname"].Errors[0].ErrorMessage</div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="UserPhone" class="form-label fw-semibold">Phone (Optional)</label>
+                            <input type="text" class="form-control @(ViewData.ModelState["UserPhone"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                                   id="UserPhone" name="UserPhone"
+                                   value="@Model.UserPhone"
+                                   placeholder="Enter your phone number">
+                            @if (ViewData.ModelState["UserPhone"]?.Errors.Count > 0)
+                            {
+                                <div class="invalid-feedback">@ViewData.ModelState["UserPhone"].Errors[0].ErrorMessage</div>
+                            }
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="UserPassword" class="form-label fw-semibold">Password</label>
+                            <input type="password" class="form-control @(ViewData.ModelState["UserPassword"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                                   id="UserPassword" name="UserPassword"
+                                   placeholder="Create a password" required>
+                            @if (ViewData.ModelState["UserPassword"]?.Errors.Count > 0)
+                            {
+                                <div class="invalid-feedback">@ViewData.ModelState["UserPassword"].Errors[0].ErrorMessage</div>
+                            }
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="UserPasswordConfirmation" class="form-label fw-semibold">Confirm Password</label>
+                            <input type="password" class="form-control @(ViewData.ModelState["UserPasswordConfirmation"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                                   id="UserPasswordConfirmation" name="UserPasswordConfirmation"
+                                   placeholder="Confirm your password" required>
+                            @if (ViewData.ModelState["UserPasswordConfirmation"]?.Errors.Count > 0)
+                            {
+                                <div class="invalid-feedback">@ViewData.ModelState["UserPasswordConfirmation"].Errors[0].ErrorMessage</div>
+                            }
+                        </div>
+
+                        <input type="hidden" name="Token" value="@Model.Token" />
+
+                        <button type="submit" class="btn btn-dark-green w-100 py-3 rounded-3 fw-bold">
+                            Complete Registration
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .logoC {
+            width: 40px;
+            height: 40px;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .form-control {
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+            transition: all 0.3s ease;
+        }
+
+            .form-control:focus {
+                border-color: var(--dark-green);
+                box-shadow: 0 0 0 0.2rem rgba(26, 77, 46, 0.25);
+            }
+
+        .btn-dark-green {
+            background-color: var(--dark-green);
+            border: none;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+            .btn-dark-green:hover {
+                background-color: #1a4d2e;
+                transform: translateY(-1px);
+                box-shadow: 0 5px 15px rgba(26, 77, 46, 0.3);
+                color: white;
+            }
+    </style>
+}

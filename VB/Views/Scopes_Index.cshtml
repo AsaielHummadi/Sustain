@@ -1,0 +1,103 @@
+﻿@{
+    ViewData["Title"] = "Emission Scopes";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<div class="container-fluid p-4 p-md-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 fw-bold text-dark mb-2">Emission Scopes</h1>
+            <p class="text-muted">Select a scope to view its emission records.</p>
+        </div>
+    </div>
+
+    <!-- Scope Selection Cards -->
+    <div class="row g-4">
+        <!-- Scope 1 Card -->
+        <div class="col-lg-4 col-md-6">
+            <a href="@Url.Action("Index", "EmissionRecord", new { scope_filter = "Scope 1" })" class="text-decoration-none">
+                <div class="card shadow-sm h-100 hover-shadow">
+                    <div class="card-body p-4 d-flex flex-column align-items-center text-center">
+                        <div class="btn-dark-green bg-opacity-10 rounded-circle p-3 mb-3">
+                            <i class="bi bi-fuel-pump fs-1 text-warning"></i>
+                        </div>
+                        <h4 class="card-title fw-bold text-warning">Scope 1</h4>
+                        <p class="card-text text-muted mb-3">Direct Emissions</p>
+                        <p class="card-text small">
+                            Emissions from sources that are owned or controlled by your organization, such as on-site fuel combustion, company vehicles, and process emissions.
+                        </p>
+                        <span class="badge bg-warning text-dark mt-3 py-2 px-3">View Records</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Scope 2 Card -->
+        <div class="col-lg-4 col-md-6">
+            <a href="@Url.Action("Index", "EmissionRecord", new { scope_filter = "Scope 2" })" class="text-decoration-none">
+                <div class="card shadow-sm h-100 hover-shadow">
+                    <div class="card-body p-4 d-flex flex-column align-items-center text-center">
+                        <div class="btn-dark-green bg-opacity-10 rounded-circle p-3 mb-3">
+                            <i class="bi bi-lightning-charge fs-1 text-warning"></i>
+                        </div>
+                        <h4 class="card-title fw-bold text-warning">Scope 2</h4>
+                        <p class="card-text text-muted mb-3">Indirect Energy Emissions</p>
+                        <p class="card-text small">
+                            Emissions from the generation of purchased electricity, steam, heating, and cooling consumed by your organization.
+                        </p>
+                        <span class="badge bg-warning text-white mt-3 py-2 px-3">View Records</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Scope 3 Card (Coming Soon) -->
+        <div class="col-lg-4 col-md-6">
+            <a href="#" class="text-decoration-none disabled-link" onclick="return false;">
+                <div class="card border-danger shadow-sm h-100 opacity-75">
+                    <div class="card-body p-4 d-flex flex-column align-items-center text-center">
+                        <div class="bg-danger bg-opacity-10 rounded-circle p-3 mb-3">
+                            <i class="bi bi-diagram-3 fs-1 text-white"></i>
+                        </div>
+                        <h4 class="card-title fw-bold text-danger">Scope 3</h4>
+                        <p class="card-text text-muted mb-3">Other Indirect Emissions</p>
+                        <p class="card-text small">
+                            All other indirect emissions not included in Scope 2, occurring in the value chain of your organization, both upstream and downstream.
+                        </p>
+                        <span class="badge bg-secondary mt-3 py-2 px-3">Coming Soon</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .hover-shadow:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+            transform: translateY(-2px);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .disabled-link {
+            pointer-events: none;
+            cursor: default;
+        }
+
+        .card {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+
+            .card:hover {
+                transform: translateY(-2px);
+            }
+
+        .btn-dark-green {
+            background-color: var(--dark-green);
+            color: white;
+        }
+    </style>
+}

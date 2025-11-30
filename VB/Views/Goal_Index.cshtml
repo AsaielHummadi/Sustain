@@ -1,0 +1,371 @@
+﻿@model Sustain.ViewModels.GoalVMs.GoalIndexViewModel
+@{
+    ViewData["Title"] = "Goals & Targets";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<div class="container-fluid p-4 p-md-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 fw-bold text-dark mb-2">Goals & Targets</h1>
+                    <p class="text-muted">Track and manage your sustainability goals</p>
+                </div>
+                <button type="button" class="btn btn-primary px-4 py-2 rounded-3" data-bs-toggle="modal" data-bs-target="#createGoalModal">
+                    <i class="bi bi-plus-circle me-2"></i>Create New Goal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Goals Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <div class="text-primary mb-2">
+                        <i class="bi bi-play-circle fs-1"></i>
+                    </div>
+                    <h3 class="fw-bold text-primary">@Model.Goals.Count(g => g.GoalStatus == "Active")</h3>
+                    <p class="text-muted mb-0">Active Goals</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <div class="text-success mb-2">
+                        <i class="bi bi-check-circle fs-1"></i>
+                    </div>
+                    <h3 class="fw-bold text-success">@Model.Goals.Count(g => g.GoalStatus == "Completed")</h3>
+                    <p class="text-muted mb-0">Completed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <div class="text-warning mb-2">
+                        <i class="bi bi-x-circle fs-1"></i>
+                    </div>
+                    <h3 class="fw-bold text-warning">@Model.Goals.Count(g => g.GoalStatus == "Cancelled")</h3>
+                    <p class="text-muted mb-0">Cancelled</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <div class="text-info mb-2">
+                        <i class="bi bi-bullseye fs-1"></i>
+                    </div>
+                    <h3 class="fw-bold text-info">@Model.Goals.Count</h3>
+                    <p class="text-muted mb-0">Total Goals</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goals Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm p-4 border-0">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="mb-0 text-dark">
+                        <i class="bi bi-bullseye me-2"></i>All Goals
+                        <span class="badge bg-primary ms-2">@Model.Goals.Count</span>
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    @if (Model.Goals.Any())
+                    {
+                        <div class="table-responsive">
+                            <table id="datatable" class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Goal Title</th>
+                                        <th>Emission Source</th>
+                                        <th>Target Value</th>
+                                        <th>Period</th>
+                                        <th>Timeline</th>
+                                        <th>Status</th>
+                                        <th width="150" class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var goal in Model.Goals)
+                                    {
+                                        
+                                        var startDate = goal.GoalGoalStartDate.HasValue ? goal.GoalGoalStartDate.Value.ToDateTime(TimeOnly.MinValue) : DateTime.MinValue;
+                                        var endDate = goal.GoalGoalEndDate.HasValue ? goal.GoalGoalEndDate.Value.ToDateTime(TimeOnly.MinValue) : DateTime.MinValue;
+                                        var totalDays = (endDate - startDate).TotalDays;
+                                        var daysPassed = (DateTime.Now - startDate).TotalDays;
+                                        var progressPercentage = totalDays > 0 ? (int)Math.Min(100, Math.Max(0, (daysPassed / totalDays) * 100)) : 0;
+                                        var daysRemaining = (int)Math.Max(0, (endDate - DateTime.Now).TotalDays);
+                                        var isOverdue = goal.GoalStatus == "Active" && DateTime.Now > endDate;
+                                        
+                                        <tr>
+                                            <td>
+                                                <div>
+                                                    <strong class="d-block">@goal.GoalTitle</strong>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-dark">
+                                                    @goal.EmissionSource.EmissionSourceName
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <strong>@goal.GoalGoalValue?.ToString("N2")</strong>
+                                                <small class="text-muted ms-1">@goal.EmissionSource.EmissionSourceUnit</small>
+                                            </td>
+                                            <td>@goal.GoalGoalPeriod</td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    @(goal.GoalGoalStartDate.HasValue ? startDate.ToString("MMM dd, yyyy") : "N/A") - @(goal.GoalGoalEndDate.HasValue ? endDate.ToString("MMM dd, yyyy") : "N/A")
+                                                </small>
+                                                <div class="progress mt-1" style="height: 4px;">
+                                                    <div class="progress-bar bg-@(goal.GoalStatus == "Active" ? "success" : goal.GoalStatus == "Completed" ? "warning" : "danger")"
+                                                         role="progressbar"
+                                                         style="width: @progressPercentage%">
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted d-block mt-1">
+                                                    @progressPercentage% complete
+                                                    @if (goal.GoalStatus == "Active")
+                                                    {
+                                                        @:• @daysRemaining days left
+                                                    }
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <form asp-action="UpdateStatus" asp-route-id="@goal.GoalId" method="POST" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <select name="GoalStatus" class="form-select form-select-sm" onchange="this.form.submit()">
+                                                        <option value="Active" selected="@(goal.GoalStatus == "Active")">Active</option>
+                                                        <option value="Completed" selected="@(goal.GoalStatus == "Completed")">Completed</option>
+                                                        <option value="Cancelled" selected="@(goal.GoalStatus == "Cancelled")">Cancelled</option>
+                                                    </select>
+                                                </form>
+                                                @if (isOverdue)
+                                                {
+                                                    <small class="text-danger d-block mt-1">
+                                                        <i class="bi bi-exclamation-triangle me-1"></i>Overdue
+                                                    </small>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="d-flex justify-content-center gap-1">
+                                                    <a asp-action="Show" asp-route-id="@goal.GoalId" class="btn btn-sm btn-outline-info" title="View Details">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editGoalModal@(goal.GoalId)"
+                                                            title="Edit Goal">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                                            onclick="if(confirm('Are you sure you want to delete @goal.GoalTitle?')) { document.getElementById('delete-form-@goal.GoalId').submit(); }"
+                                                            title="Delete Goal">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                    <form id="delete-form-@goal.GoalId" asp-action="Destroy" asp-route-id="@goal.GoalId" method="POST" class="d-none">
+                                                        @Html.AntiForgeryToken()
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        <!-- Edit Goal Modal for each goal -->
+                                        <div class="modal fade" id="editGoalModal@(goal.GoalId)" tabindex="-1" aria-labelledby="editGoalModalLabel@(goal.GoalId)" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title fw-bold" id="editGoalModalLabel@(goal.GoalId)">
+                                                            <i class="bi bi-pencil me-2"></i>Edit Goal
+                                                        </h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form method="POST" asp-action="Update" asp-route-id="@goal.GoalId">
+                                                        @Html.AntiForgeryToken()
+                                                        <div class="modal-body">
+                                                            <div class="mb-3">
+                                                                <label for="edit_GoalTitle@(goal.GoalId)" class="form-label fw-semibold">Goal Title *</label>
+                                                                <input type="text" class="form-control" id="edit_GoalTitle@(goal.GoalId)"
+                                                                       name="GoalTitle" value="@goal.GoalTitle" required>
+                                                            </div>
+
+                                                            <div class="mb-3">
+                                                                <label for="edit_EmissionSourceId@(goal.GoalId)" class="form-label fw-semibold">Emission Source *</label>
+                                                                <select class="form-select" id="edit_EmissionSourceId@(goal.GoalId)" name="EmissionSourceId" required>
+                                                                    @foreach (var source in Model.EmissionSources)
+                                                                    {
+                                                                        <option value="@source.EmissionSourceId"
+                                                                                selected="@(goal.EmissionSourceId == source.EmissionSourceId)">
+                                                                            @source.EmissionSourceName (@source.EmissionSourceUnit)
+                                                                        </option>
+                                                                    }
+                                                                </select>
+                                                            </div>
+
+                                                            <div class="mb-3">
+                                                                <label for="edit_GoalDescription@(goal.GoalId)" class="form-label fw-semibold">Description</label>
+                                                                <textarea class="form-control" id="edit_GoalDescription@(goal.GoalId)"
+                                                                          name="GoalDescription" rows="3">@goal.GoalDescription</textarea>
+                                                            </div>
+
+                                                            <div class="row">
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label for="edit_GoalGoalValue@(goal.GoalId)" class="form-label fw-semibold">Target Value *</label>
+                                                                    <input type="number" step="0.01" class="form-control" id="edit_GoalGoalValue@(goal.GoalId)"
+                                                                           name="GoalGoalValue" value="@goal.GoalGoalValue" required>
+                                                                </div>
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label for="edit_GoalGoalPeriod@(goal.GoalId)" class="form-label fw-semibold">Goal Period *</label>
+                                                                    <select class="form-select" id="edit_GoalGoalPeriod@(goal.GoalId)" name="GoalGoalPeriod" required>
+                                                                        <option value="Monthly" selected="@(goal.GoalGoalPeriod == "Monthly")">Monthly</option>
+                                                                        <option value="Quarterly" selected="@(goal.GoalGoalPeriod == "Quarterly")">Quarterly</option>
+                                                                        <option value="Annual" selected="@(goal.GoalGoalPeriod == "Annual")">Annual</option>
+                                                                        <option value="Custom" selected="@(goal.GoalGoalPeriod == "Custom")">Custom</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="row">
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label for="edit_GoalGoalStartDate@(goal.GoalId)" class="form-label fw-semibold">Start Date *</label>
+                                                                    <input type="date" class="form-control" id="edit_GoalGoalStartDate@(goal.GoalId)"
+                                                                           name="GoalGoalStartDate" value="@(goal.GoalGoalStartDate.HasValue ? goal.GoalGoalStartDate.Value.ToString("yyyy-MM-dd") : "")" required>
+                                                                </div>
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label for="edit_GoalGoalEndDate@(goal.GoalId)" class="form-label fw-semibold">End Date *</label>
+                                                                    <input type="date" class="form-control" id="edit_GoalGoalEndDate@(goal.GoalId)"
+                                                                           name="GoalGoalEndDate" value="@(goal.GoalGoalEndDate.HasValue ? goal.GoalGoalEndDate.Value.ToString("yyyy-MM-dd") : "")" required>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="mb-3">
+                                                                <label for="edit_GoalStatus@(goal.GoalId)" class="form-label fw-semibold">Status *</label>
+                                                                <select class="form-select" id="edit_GoalStatus@(goal.GoalId)" name="GoalStatus" required>
+                                                                    <option value="Active" selected="@(goal.GoalStatus == "Active")">Active</option>
+                                                                    <option value="Completed" selected="@(goal.GoalStatus == "Completed")">Completed</option>
+                                                                    <option value="Cancelled" selected="@(goal.GoalStatus == "Cancelled")">Cancelled</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                                <i class="bi bi-x-circle me-1"></i>Cancel
+                                                            </button>
+                                                            <button type="submit" class="btn btn-primary">
+                                                                <i class="bi bi-check-circle me-1"></i>Update Goal
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-bullseye display-1 text-muted mb-3"></i>
+                            <h4 class="text-muted">No Goals Yet</h4>
+                            <p class="text-muted mb-4">Start tracking your sustainability targets by creating your first goal.</p>
+                            <button type="button" class="btn btn-primary px-4 py-2 rounded-3" data-bs-toggle="modal" data-bs-target="#createGoalModal">
+                                <i class="bi bi-plus-circle me-2"></i>Create First Goal
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Goal Modal -->
+@await Html.PartialAsync("Partials/_CreateGoalModal", Model)
+
+@section Styles {
+    <style>
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border-radius: 0.5rem;
+        }
+
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table td {
+            vertical-align: middle;
+            padding: 1rem 0.75rem;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.35em 0.65em;
+        }
+
+        .modal-content {
+            border-radius: 0.75rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--dark-green);
+            box-shadow: 0 0 0 0.2rem rgba(26, 77, 46, 0.1);
+        }
+
+        .progress {
+            background-color: #e9ecef;
+        }
+
+        :root {
+            --dark-green: #1a4d2e;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Auto-show modal if there are errors
+        document.addEventListener('DOMContentLoaded', function() {
+            @if (!ViewData.ModelState.IsValid)
+            {
+                    @:const createModal = new bootstrap.Modal(document.getElementById('createGoalModal'));
+                    @:createModal.show();
+            }
+        });
+    </script>
+}

@@ -1,0 +1,241 @@
+﻿@model Sustain.ViewModels.DashboardVMs.FactoryOperatorDashboardViewModel
+@{
+    ViewData["Title"] = "Factory Operator Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid p-4 p-md-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h1 class="h3 fw-bold text-dark mb-0">Factory Operator Dashboard</h1>
+            <!-- Factory Selector (Read-only for Factory Operator) -->
+            <div class="btn btn-outline-primary" disabled>
+                @(Model.Factory?.FactoryName ?? "No Factory Assigned")
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards Row -->
+    <div class="row g-4 mb-4">
+        <!-- Total Emissions Card -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h6 class="card-title text-muted mb-2">Total Emissions</h6>
+                    <h2 class="fw-bold text-dark mb-1">@Model.TotalEmissions.ToString("N3")</h2>
+                    <p class="card-text text-muted mb-0">tons CO₂e</p>
+                </div>
+            </div>
+        </div>
+        <!-- Scope 1 Emissions Card -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h6 class="card-title text-muted mb-2">Scope 1 Emissions</h6>
+                    <h2 class="fw-bold text-dark mb-1">@Model.Scope1Emissions.ToString("N3")</h2>
+                    <p class="card-text text-muted mb-0">tons CO₂e</p>
+                </div>
+            </div>
+        </div>
+        <!-- Scope 2 Emissions Card -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h6 class="card-title text-muted mb-2">Scope 2 Emissions</h6>
+                    <h2 class="fw-bold text-dark mb-1">@Model.Scope2Emissions.ToString("N3")</h2>
+                    <p class="card-text text-muted mb-0">tons CO₂e</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <!-- Emissions Trend (Line Chart) -->
+        <div class="col-lg-12">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="mb-0">Emissions Trend</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div id="emissionsTrendChart" style="height: 200px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Last Submitted Data Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="mb-0">Last Submitted Data</h5>
+                </div>
+                <div class="card-body p-4">
+                    @if (Model.LatestRecords.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Month</th>
+                                        <th>Source</th>
+                                        <th>Quantity</th>
+                                        <th>Emissions (tCO₂e)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var record in Model.LatestRecords)
+                                    {
+                                        var emissions = (double)(record.EmissionSource.EmissionSourceEmissionFactor * record.EmissionQuantity);
+                                        <tr>
+                                            <td>@record.EmissionMonth.ToString("00")/@record.EmissionYear</td>
+                                            <td>@record.EmissionSource.EmissionSourceName</td>
+                                            <td>@record.EmissionQuantity?.ToString("N2") @record.EmissionSource.EmissionSourceUnit</td>
+                                            <td>@emissions.ToString("N3")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-cloud-arrow-up display-1 text-muted mb-3"></i>
+                            <h4 class="text-muted">No Data Submitted Yet</h4>
+                            <p class="text-muted mb-4">Start tracking your factory's carbon emissions by submitting your first data entry.</p>
+                            <a href="@Url.Action("Index", "EmissionRecord")" class="btn btn-primary px-4 py-2 rounded-3">
+                                <i class="bi bi-plus-circle me-2"></i>Submit First Record
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.1);
+            border-radius: 0.75rem;
+        }
+
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid #e9ecef;
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .card-text {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            border-radius: 0.5rem;
+        }
+
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .btn-outline-secondary {
+            border-color: #dee2e6;
+            color: #495057;
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: #f8f9fa;
+            border-color: #ced4da;
+        }
+
+        .progress {
+            background-color: #e9ecef;
+            border-radius: 0.25rem;
+        }
+
+        .progress-bar {
+            border-radius: 0.25rem;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.35em 0.65em;
+        }
+
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background-color: #f8f9fa;
+        }
+
+        .table td {
+            vertical-align: middle;
+            padding: 1rem 0.75rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create Emissions Trend (Line Chart)
+            const emissionsTrendChartOptions = {
+                chart: {
+                    type: 'line',
+                    height: 200,
+                    toolbar: { show: false }
+                },
+                series: [{
+                    name: 'Emissions',
+                    data: Object.values(@Json.Serialize(Model.ChartData["emissionsByMonth"]))
+                }],
+                xaxis: {
+                    categories: Object.keys(@Json.Serialize(Model.ChartData["emissionsByMonth"])).map(month => {
+                        const [year, monthNum] = month.split('-');
+                        return `${new Date(year, monthNum - 1).toLocaleString('default', { month: 'short' })} ${year}`;
+                    }),
+                    title: {
+                        text: 'Month'
+                    }
+                },
+                yaxis: {
+                    title: {
+                        text: 'Emissions (tCO₂e)'
+                    }
+                },
+                colors: ['#477126']
+            };
+
+            const emissionsTrendChart = new ApexCharts(document.querySelector("#emissionsTrendChart"), emissionsTrendChartOptions);
+            emissionsTrendChart.render();
+        });
+    </script>
+}

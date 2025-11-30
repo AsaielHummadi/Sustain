@@ -1,0 +1,116 @@
+﻿<div id="sidebar-wrapper">
+    <div class="sidebar-heading p-3 m-3 d-flex align-items-center">
+        <img src="~/logo.png" alt="Sustain Logo">
+        <span class="text-hidden ms-2">Sustain</span>
+    </div>
+    <div class="list-group list-group-flush pt-3">
+        @if (User.IsInRole("Administrator"))
+        {
+            <!-- Administrator Specific Links -->
+            <a href="@Url.Action("Index", "Dashboard")" class="sidebar-nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" && ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
+                <i class="bi bi-house-door-fill"></i>
+                <span class="ms-3 text-hidden">Dashboard</span>
+            </a>
+            <!-- Factories Management -->
+            <a href="@Url.Action("Index", "Factory")" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Factory" ? "active" : "")">
+                <i class="bi bi-building-fill"></i>
+                <span class="ms-3 text-hidden">Factories</span>
+            </a>
+            <!-- Users Management -->
+            <a href="@Url.Action("Index", "User")" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "User" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                <i class="bi bi-people-fill"></i>
+                <span class="ms-3 text-hidden">Users</span>
+            </a>
+            <!-- Pending Invitations -->
+            <a href="@Url.Action("PendingInvitations", "User")" class="sidebar-nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "PendingInvitations" ? "active" : "")">
+                <i class="bi bi-clock-history"></i>
+                <span class="ms-3 text-hidden">Pending Invites</span>
+                @if (ViewBag.PendingInvitationsCount > 0)
+                {
+                    <span class="badge bg-warning ms-2">@ViewBag.PendingInvitationsCount</span>
+                }
+            </a>
+            <!-- Goals & Targets -->
+            <a href="@Url.Action("Index", "Goal")" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Goal" ? "active" : "")">
+                <i class="bi bi-bullseye"></i>
+                <span class="ms-3 text-hidden">Goals & Targets</span>
+            </a>
+            <!-- Emissions Scopes -->
+            <a href="@Url.Action("Index", "EmissionSource")" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "EmissionSource" ? "active" : "")">
+                <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                <span class="ms-3 text-hidden">Emissions Scopes</span>
+            </a>
+            <!-- Emissions Log -->
+            <a href="@Url.Action("Index", "EmissionRecord")" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "EmissionRecord" ? "active" : "")">
+                <i class="bi bi-cloud-arrow-up"></i>
+                <span class="ms-3 text-hidden">Emissions Log</span>
+            </a>
+            <!-- Billing & Plan -->
+            <a href="@Url.Action("ShowBilling", "Subscription")" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Subscription" ? "active" : "")">
+                <i class="bi bi-credit-card-fill"></i>
+                <span class="ms-3 text-hidden">Billing & Plan</span>
+            </a>
+        }
+
+        @if (User.IsInRole("Sustainability Officer"))
+        {
+            <!-- Sustainability Officer Specific Links -->
+            <a href="@Url.Action("SustainabilityOfficerDashboard", "Dashboard")" class="sidebar-nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "SustainabilityOfficerDashboard" ? "active" : "")">
+                <i class="bi bi-house-door-fill"></i>
+                <span class="ms-3 text-hidden">Dashboard</span>
+            </a>
+            <a href="@Url.Action("Index", "Goal")" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Goal" ? "active" : "")">
+                <i class="bi bi-bullseye"></i>
+                <span class="ms-3 text-hidden">Goals & Targets</span>
+            </a>
+            <!-- Emissions Scopes -->
+            <a href="@Url.Action("Index", "EmissionSource")" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "EmissionSource" ? "active" : "")">
+                <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                <span class="ms-3 text-hidden">Emissions Scopes</span>
+            </a>
+            <!-- Emissions Log -->
+            <a href="@Url.Action("Index", "EmissionRecord")" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "EmissionRecord" ? "active" : "")">
+                <i class="bi bi-cloud-arrow-up"></i>
+                <span class="ms-3 text-hidden">Emissions Log</span>
+            </a>
+        }
+
+        @if (User.IsInRole("Factory Operator"))
+        {
+            <!-- Factory Operator Specific Links -->
+            <a href="@Url.Action("FactoryOperatorDashboard", "Dashboard")" class="sidebar-nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "FactoryOperatorDashboard" ? "active" : "")">
+                <i class="bi bi-house-door-fill"></i>
+                <span class="ms-3 text-hidden">Dashboard</span>
+            </a>
+            <!-- Emissions Scopes -->
+            <a href="@Url.Action("Index", "EmissionSource")" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "EmissionSource" ? "active" : "")">
+                <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                <span class="ms-3 text-hidden">Emissions Scopes</span>
+            </a>
+            <!-- Emissions Log -->
+            <a href="@Url.Action("Index", "EmissionRecord")" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "EmissionRecord" ? "active" : "")">
+                <i class="bi bi-cloud-arrow-up"></i>
+                <span class="ms-3 text-hidden">Emissions Log</span>
+            </a>
+        }
+
+        <!-- Common Links for All Roles -->
+        <a href="@Url.Action("EditProfile", "User")" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "User" && ViewContext.RouteData.Values["action"]?.ToString() == "EditProfile" ? "active" : "")">
+            <i class="bi bi-person-circle"></i>
+            <span class="ms-3 text-hidden">Profile</span>
+        </a>
+    </div>
+
+    <!-- Bottom Link (Logout) -->
+    <div class="position-absolute bottom-0 w-100 p-2">
+        <div class="dropdown">
+            <form method="POST" action="@Url.Action("Logout", "Auth")">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="sidebar-nav-item btn btn-outline-danger w-100 text-start">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span class="ms-3 text-hidden">Logout</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,104 @@
+﻿@model Sustain.Models.EmissionRecord
+@{
+    var emissionSources = ViewBag.EmissionSources as List<Sustain.Models.EmissionSource> ?? new List<Sustain.Models.EmissionSource>();
+    var factories = ViewBag.Factories as List<Sustain.Models.Factory> ?? new List<Sustain.Models.Factory>();
+}
+
+<div class="modal fade" id="editEmissionModal@(Model.EmissionRecordId)" tabindex="-1" aria-labelledby="editEmissionModalLabel@(Model.EmissionRecordId)" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="editEmissionModalLabel@(Model.EmissionRecordId)">
+                    <i class="bi bi-pencil me-2"></i>Edit Emission Record
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" asp-action="Update" asp-route-id="@Model.EmissionRecordId">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_EmissionSourceId@(Model.EmissionRecordId)" class="form-label fw-semibold">Emission Source *</label>
+                        <select class="form-select" id="edit_EmissionSourceId@(Model.EmissionRecordId)" name="EmissionSourceId" required>
+                            <option value="">Select Emission Source</option>
+                            @foreach (var source in emissionSources)
+                            {
+                                <option value="@source.EmissionSourceId" selected="@(Model.EmissionSourceId == source.EmissionSourceId)">
+                                    @source.EmissionSourceName (@source.EmissionSourceUnit)
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit_FactoryId@(Model.EmissionRecordId)" class="form-label fw-semibold">Factory *</label>
+                        <select class="form-select" id="edit_FactoryId@(Model.EmissionRecordId)" name="FactoryId" required>
+                            @foreach (var factory in factories)
+                            {
+                                <option value="@factory.FactoryId" selected="@(Model.FactoryId == factory.FactoryId)">
+                                    @factory.FactoryName
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_EmissionYear@(Model.EmissionRecordId)" class="form-label fw-semibold">Year *</label>
+                            <select class="form-select" id="edit_EmissionYear@(Model.EmissionRecordId)" name="EmissionYear" required>
+                                @for (int year = DateTime.Now.Year; year >= 2020; year--)
+                                {
+                                    <option value="@year" selected="@(Model.EmissionYear == year)">
+                                        @year
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_EmissionMonth@(Model.EmissionRecordId)" class="form-label fw-semibold">Month *</label>
+                            <select class="form-select" id="edit_EmissionMonth@(Model.EmissionRecordId)" name="EmissionMonth" required>
+                                @for (int month = 1; month <= 12; month++)
+                                {
+                                    <option value="@month" selected="@(Model.EmissionMonth == month)">
+                                        @(new DateTime(2020, month, 1).ToString("MMMM"))
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit_EmissionQuantity@(Model.EmissionRecordId)" class="form-label fw-semibold">Quantity *</label>
+                        <input type="number" step="0.01" class="form-control"
+                               id="edit_EmissionQuantity@(Model.EmissionRecordId)"
+                               name="EmissionQuantity"
+                               value="@Model.EmissionQuantity"
+                               placeholder="Enter quantity" required>
+                        <div class="form-text">
+                            Unit: @Model.EmissionSource?.EmissionSourceUnit
+                        </div>
+                    </div>
+
+                    @if (ViewData.ModelState.ErrorCount > 0)
+                    {
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i>Update Record
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

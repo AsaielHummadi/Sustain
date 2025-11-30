@@ -1,0 +1,192 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - Sustain - Smart Track, Strong Impact</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/custom.css">
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg bg-white sticky-top py-3">
+        <div class="container-fluid mx-lg-5 mx-3">
+            <a class="navbar-brand d-flex align-items-center" href="@Url.Action("Home", "Home")">
+                <img src="~/logo.png" alt="Sustain Logo" class="me-2 logoC rounded-2">
+                <span class="fw-bold fs-4 text-dark" style="color: var(--dark-green) !important;">Sustain</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link mx-2 @(ViewContext.RouteData.Values["action"]?.ToString() == "Home" ? "active" : "")" aria-current="page" href="@Url.Action("Home", "Home")">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link mx-2" href="@Url.Action("Home", "Home")#about-us">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link mx-2" href="@Url.Action("Home", "Home")#saudi-vision">Saudi Vision</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link mx-2" href="@Url.Action("Home", "Home")#why-sustain">Why Sustain</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link mx-2" href="@Url.Action("Home", "Home")#how-it-works">How It Works</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link mx-2" href="@Url.Action("Home", "Home")#plans">Plans</a>
+                    </li>
+                </ul>
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <!-- Show Dashboard/Profile and Logout if logged in -->
+                    <div class="d-flex align-items-center gap-2">
+                        @{
+                            var userRole = ViewBag.RoleName as string;
+                            var dashboardUrl = Url.Action("Index", "Dashboard");
+
+                            if (userRole == "Administrator")
+                            {
+                                dashboardUrl = Url.Action("AdminDashboard", "Dashboard");
+                            }
+                            else if (userRole == "Sustainability Officer")
+                            {
+                                dashboardUrl = Url.Action("SustainabilityOfficerDashboard", "Dashboard");
+                            }
+                            else if (userRole == "Factory Operator")
+                            {
+                                dashboardUrl = Url.Action("FactoryOperatorDashboard", "Dashboard");
+                            }
+                        }
+                        <a href="@dashboardUrl" class="btn btn-outline-dark-green px-4 py-2 rounded-3 fw-semibold">
+                            Dashboard
+                        </a>
+                        <form method="POST" action="@Url.Action("Logout", "Auth")">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-dark-green px-4 py-2 rounded-3 fw-semibold">
+                                Log Out
+                            </button>
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    <!-- Show Login if not logged in -->
+                    <a href="@Url.Action("ShowLoginForm", "Auth")" class="btn btn-dark-green px-4 py-2 rounded-3 fw-semibold ms-lg-auto">Log In</a>
+                }
+            </div>
+        </div>
+    </nav>
+
+    @RenderBody()
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title text-danger" id="deleteConfirmationModalLabel">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Deletion
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-4">
+                    <p class="mb-0">Are you sure you want to delete this item? This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form id="deleteForm" method="POST" action="">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="_method" value="DELETE" />
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER SECTION -->
+    <footer class="container-fluid py-5" style="background-color: #d8eadb;">
+        <div class="container">
+            <div class="row text-center text-md-start">
+                <!-- Logo & Navigation -->
+                <div class="col-md-3 mb-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="~/logo.png" alt="Systain Logo" class="me-2 logoC" style="width: 40px; height: 40px;">
+                        <h5 class="fw-bold mb-0">Systain</h5>
+                    </div>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-dark text-decoration-none d-block mb-1">Home</a></li>
+                        <li><a href="#" class="text-dark text-decoration-none d-block mb-1">About Us</a></li>
+                        <li><a href="#" class="text-dark text-decoration-none d-block mb-1">FAQ</a></li>
+                        <li><a href="#" class="text-dark text-decoration-none d-block">Help Center</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Section -->
+                <div class="col-md-3 mb-4">
+                    <h6 class="fw-bold mb-3">contact us:</h6>
+                    <p class="mb-1">
+                        <i class="bi bi-envelope-fill me-2"></i>Support@systain.sa
+                    </p>
+                    <p class="mb-0">
+                        <i class="bi bi-geo-alt-fill me-2"></i>Jubail Industrial City, Eastern Province, Saudi Arabia
+                    </p>
+                </div>
+
+                <!-- Policies & Terms -->
+                <div class="col-md-3 mb-4">
+                    <h6 class="fw-bold mb-3">Policies & Terms:</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-dark text-decoration-none d-block mb-1">Privacy Policy</a></li>
+                        <li><a href="#" class="text-dark text-decoration-none d-block mb-1">Terms of Service</a></li>
+                        <li><a href="#" class="text-dark text-decoration-none d-block">Cookie Policy</a></li>
+                    </ul>
+                </div>
+
+                <!-- Social Links -->
+                <div class="col-md-3 mb-4">
+                    <h6 class="fw-bold mb-3">Follow us:</h6>
+                    <div class="d-flex justify-content-center justify-content-md-start gap-3">
+                        <a href="#" class="text-dark fs-5"><i class="bi bi-linkedin"></i></a>
+                        <a href="#" class="text-dark fs-5"><i class="bi bi-x"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Copyright -->
+            <div class="text-center mt-4">
+                <small class="fw-bold">&copy; 2025 Systain. All rights reserved.</small>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Delete Confirmation Script -->
+    <script>
+        function confirmDelete(itemName, deleteUrl) {
+            // Update modal message
+            const modalBody = document.querySelector('#deleteConfirmationModal .modal-body');
+            modalBody.innerHTML = `<p class="mb-0">Are you sure you want to delete <strong>"${itemName}"</strong>? This action cannot be undone.</p>`;
+
+            // Update form action
+            document.getElementById('deleteForm').action = deleteUrl;
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
+            modal.show();
+        }
+    </script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

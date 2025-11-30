@@ -1,0 +1,32 @@
+﻿@model Sustain.Models.SubscriptionPlan
+@{
+    ViewData["Title"] = "Free Trial Started";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<div class="container py-5 my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="card border-0 shadow-lg rounded-3">
+                <div class="card-body py-5">
+                    <i class="bi bi-gift-fill text-success display-1 mb-4"></i>
+                    <h1 class="fw-bold text-dark mb-3">Free Trial Started!</h1>
+                    <p class="lead text-muted mb-4">
+                        @if (Model != null)
+                        {
+                            @:Your free trial for the @Model.SubscriptionPlanName plan has been activated.
+                        }
+                        else
+                        {
+                            @:Your free trial has been activated.
+                        }
+                        You now have full access to all features for 30 days. No payment required!
+                    </p>
+                    <a href="@Url.Action("AdminDashboard", "Dashboard")" class="btn btn-dark-green px-5 py-3 rounded-3 fw-bold">
+                        Start Using Sustain
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

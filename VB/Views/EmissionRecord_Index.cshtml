@@ -1,0 +1,416 @@
+﻿@model Sustain.ViewModels.EmissionRecordVMs.EmissionRecordIndexViewModel
+@{
+    ViewData["Title"] = "Emissions Data";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<div class="container-fluid p-4 p-md-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 fw-bold text-dark mb-2">Emissions Data</h1>
+                    <p class="text-muted">Manage and track your organization's carbon emissions</p>
+                </div>
+                <button type="button" class="btn btn-primary px-4 py-2 rounded-3" data-bs-toggle="modal" data-bs-target="#createEmissionModal">
+                    <i class="bi bi-plus-circle me-2"></i>New Emission Entry
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-light shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3"><i class="bi bi-funnel me-2 text-primary"></i>Filter Records</h5>
+                    <form method="GET" asp-action="Index">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label for="factory_filter" class="form-label">Factory</label>
+                                <select name="factory_filter" id="factory_filter" class="form-select">
+                                    <option value="">All Factories</option>
+                                    @foreach (var factory in Model.Factories)
+                                    {
+                                        <option value="@factory.FactoryId" selected="@(Context.Request.Query["factory_filter"] == factory.FactoryId.ToString())">
+                                            @factory.FactoryName
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="source_filter" class="form-label">Emission Source</label>
+                                <select name="source_filter" id="source_filter" class="form-select">
+                                    <option value="">All Sources</option>
+                                    @foreach (var source in Model.EmissionSources)
+                                    {
+                                        <option value="@source.EmissionSourceId" selected="@(Context.Request.Query["source_filter"] == source.EmissionSourceId.ToString())">
+                                            @source.EmissionSourceName
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="year_filter" class="form-label">Year</label>
+                                <select name="year_filter" id="year_filter" class="form-select">
+                                    <option value="">All Years</option>
+                                    @for (int year = DateTime.Now.Year; year >= 2020; year--)
+                                    {
+                                        <option value="@year" selected="@(Context.Request.Query["year_filter"] == year.ToString())">@year</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="month_filter" class="form-label">Month</label>
+                                <select name="month_filter" id="month_filter" class="form-select">
+                                    <option value="">All Months</option>
+                                    @for (int month = 1; month <= 12; month++)
+                                    {
+                                        <option value="@month" selected="@(Context.Request.Query["month_filter"] == month.ToString())">
+                                            @(new DateTime(2020, month, 1).ToString("MMMM"))
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-dark-green w-100">
+                                    <i class="bi bi-search me-1"></i> Apply
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary w-100 ms-2" onclick="clearFilters()">
+                                    <i class="bi bi-x-circle me-1"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scope Filter Indicator -->
+    @if (!string.IsNullOrEmpty(Context.Request.Query["scope_filter"]))
+    {
+        var scopeFilter = Context.Request.Query["scope_filter"].ToString();
+        var scopeName = "";
+        var scopeColor = "";
+
+        switch (scopeFilter)
+        {
+            case "1":
+                scopeName = "Scope 1";
+                scopeColor = "warning";
+                break;
+            case "2":
+                scopeName = "Scope 2";
+                scopeColor = "info";
+                break;
+            case "3":
+                scopeName = "Scope 3";
+                scopeColor = "danger";
+                break;
+            default:
+                scopeName = "Unknown Scope";
+                scopeColor = "secondary";
+                break;
+        }
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-@scopeColor d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-filter me-2"></i>
+                        <strong>Showing records for: @scopeName</strong>
+                    </div>
+                    <a href="@Url.Action("Index")" class="btn btn-outline-@scopeColor btn-sm">
+                        <i class="bi bi-x-circle me-1"></i> Clear Scope Filter
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Success/Error Messages -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Emissions Summary -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <div class="text-primary mb-2">
+                        <i class="bi bi-cloud-arrow-up fs-1"></i>
+                    </div>
+                    <h3 class="fw-bold text-primary">@Model.TotalEmissions.ToString("N2")</h3>
+                    <p class="text-muted mb-0">Total Emissions (tCO₂e)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <div class="text-warning mb-2">
+                        <i class="bi bi-fuel-pump fs-1"></i>
+                    </div>
+                    <h3 class="fw-bold text-warning">@Model.Scope1Emissions.ToString("N2")</h3>
+                    <p class="text-muted mb-0">Scope 1 Emissions</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <div class="text-info mb-2">
+                        <i class="bi bi-lightning-charge fs-1"></i>
+                    </div>
+                    <h3 class="fw-bold text-info">@Model.Scope2Emissions.ToString("N2")</h3>
+                    <p class="text-muted mb-0">Scope 2 Emissions</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <div class="text-danger mb-2">
+                        <i class="bi bi-alarm fs-1"></i>
+                    </div>
+                    <h3 class="fw-bold text-danger">0.00</h3>
+                    <p class="text-muted mb-0">Scope 3 (Coming Soon)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emission Records Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm p-3 border-0">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 text-dark">
+                            <i class="bi bi-table me-2"></i>Emission Records
+                            <span class="badge bg-primary ms-2">@Model.EmissionRecords.Count</span>
+                        </h5>
+                    </div>
+                </div>
+                <div class="card-body p-3">
+                    @if (Model.EmissionRecords.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table id="datatable" class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Period</th>
+                                        <th>Factory</th>
+                                        <th>Emission Source</th>
+                                        <th>Quantity</th>
+                                        <th>Emissions</th>
+                                        <th>Scope</th>
+                                        <th>Entered By</th>
+                                        <th width="120" class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var record in Model.EmissionRecords)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex flex-column">
+                                                    <strong class="text-dark">
+                                                        @(new DateTime(record.EmissionYear, record.EmissionMonth, 1).ToString("MMMM"))
+                                                        @record.EmissionYear
+                                                    </strong>
+                                                    <small class="text-muted">
+                                                        @record.EmissionMonth/@record.EmissionYear
+                                                    </small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-dark">
+                                                    <i class="bi bi-building me-1"></i>
+                                                    @record.Factory?.FactoryName
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <strong class="d-block">@record.EmissionSource?.EmissionSourceName</strong>
+                                                    <small class="text-muted">
+                                                        @record.EmissionSource?.EmissionSourceDescription
+                                                    </small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <strong>@record.EmissionQuantity?.ToString("N2")</strong>
+                                                <small class="text-muted ms-1">@record.EmissionSource?.EmissionSourceUnit</small>
+                                            </td>
+                                            <td>
+                                                @{
+                                                    var emissions = (double)(record.EmissionSource?.EmissionSourceEmissionFactor * record.EmissionQuantity ?? 0);
+                                                }
+                                                <strong class="text-primary">@emissions.ToString("N3")</strong>
+                                                <small class="text-muted ms-1">tCO₂e</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge @(record.EmissionSource?.EmissionSourceScope == "Scope 1" ? "bg-warning text-dark" : "bg-info")">
+                                                    @record.EmissionSource?.EmissionSourceScope
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    @record.User?.UserFname
+                                                    <br>
+                                                    <small>@record.EmissionCreatedAt?.ToString("MMM dd, yyyy")</small>
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex justify-content-center gap-1">
+                                                    <a href="@Url.Action("Show", new { id = record.EmissionRecordId })" class="btn btn-sm btn-outline-primary" title="View Details">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editEmissionModal@(record.EmissionRecordId)"
+                                                            title="Edit Record">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                                            onclick="confirmDelete('@record.EmissionSource?.EmissionSourceName - @record.EmissionMonth/@record.EmissionYear', '@Url.Action("Destroy", new { id = record.EmissionRecordId })')"
+                                                            title="Delete Record">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-cloud-arrow-up display-1 text-muted mb-3"></i>
+                            <h4 class="text-muted">No Emission Records Yet</h4>
+                            <p class="text-muted mb-4">
+                                @if (!string.IsNullOrEmpty(Context.Request.Query["scope_filter"]))
+                                {
+                                    <text>No records found for the selected filters, including <strong>Scope @Context.Request.Query["scope_filter"]</strong>.</text>
+                                }
+                                else
+                                {
+                                    <text>No emission records match the current filters.</text>
+                                }
+                            </p>
+                            <button type="button" class="btn btn-primary px-4 py-2 rounded-3" data-bs-toggle="modal" data-bs-target="#createEmissionModal">
+                                <i class="bi bi-plus-circle me-2"></i>Create First Record
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Emission Record Modal -->
+@await Html.PartialAsync("Add", new Sustain.ViewModels.EmissionRecordVMs.CreateEmissionRecordViewModel())
+
+@section Styles {
+    <style>
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.1);
+            border-radius: 0.75rem;
+        }
+
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background-color: #f8f9fa;
+        }
+
+        .table td {
+            vertical-align: middle;
+            padding: 1rem 0.75rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.35em 0.65em;
+        }
+
+        .modal-content {
+            border-radius: 0.75rem;
+            border: none;
+            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--dark-green);
+            box-shadow: 0 0 0 0.2rem rgba(26, 77, 46, 0.1);
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        function confirmDelete(recordInfo, deleteUrl) {
+            if (confirm('Are you sure you want to delete "' + recordInfo + '"? This action cannot be undone.')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = deleteUrl;
+
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '__RequestVerificationToken';
+                csrfToken.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                const methodField = document.createElement('input');
+                methodField.type = 'hidden';
+                methodField.name = '_method';
+                methodField.value = 'DELETE';
+
+                form.appendChild(csrfToken);
+                form.appendChild(methodField);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            @if (ViewData.ModelState.ErrorCount > 0 && !ViewData.ModelState.ContainsKey("duplicate"))
+            {
+                    <text>
+                    const createModal = new bootstrap.Modal(document.getElementById('createEmissionModal'));
+                    createModal.show();
+                    </text>
+            }
+        });
+
+        function clearFilters() {
+            window.location.href = "@Url.Action("Index")";
+        }
+    </script>
+}

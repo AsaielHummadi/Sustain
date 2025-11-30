@@ -1,0 +1,564 @@
+﻿@model Sustain.Models.Goal
+@{
+    ViewData["Title"] = "Goal Details";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+
+    var startDate = Model.GoalGoalStartDate.HasValue ? Model.GoalGoalStartDate.Value.ToDateTime(TimeOnly.MinValue) : DateTime.MinValue;
+    var endDate = Model.GoalGoalEndDate.HasValue ? Model.GoalGoalEndDate.Value.ToDateTime(TimeOnly.MinValue) : DateTime.MinValue;
+    var totalDays = (endDate - startDate).TotalDays;
+    var daysPassed = (DateTime.Now - startDate).TotalDays;
+    var progress = Math.Min(100, Math.Max(0, (daysPassed / totalDays) * 100));
+    var daysLeft = Math.Max(0, totalDays - daysPassed);
+}
+
+<div class="container-fluid p-4 p-md-5">
+    <!-- Back Button -->
+    <div class="row mb-4">
+        <div style="justify-content: flex-end;" class="col-12 d-flex flex-start">
+            <a asp-action="Index" class="btn btn-danger btn-sm mb-3 px-3 py-2 rounded-3">
+                Back to All Goals <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Goal Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm btn-dark-green text-white">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-bullseye me-3 fs-2"></i>
+                                <h1 class="h2 fw-bold mb-0">@Model.GoalTitle</h1>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+                                <span class="badge bg-white text-dark fs-6 px-3 py-2">
+                                    <i class="bi bi-cloud me-1"></i>
+                                    @Model.EmissionSource.EmissionSourceName
+                                </span>
+                                <span class="badge bg-white text-dark fs-6 px-3 py-2">
+                                    <i class="bi bi-calendar-range me-1"></i>
+                                    @Model.GoalGoalPeriod
+                                </span>
+                                <span class="badge
+                                    @(Model.GoalStatus == "Active" ? "bg-success" :
+                                                                            Model.GoalStatus == "Completed" ? "bg-warning" : "bg-danger") fs-6 px-3 py-2">
+                                    <i class="bi bi-circle-fill me-1"></i>
+                                    @Model.GoalStatus
+                                </span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.GoalDescription))
+                            {
+                                <p class="lead mb-0 opacity-90">@Model.GoalDescription</p>
+                            }
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <div class="bg-white rounded-3 p-3 text-dark">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <small class="text-muted">Created by</small>
+                                    <div class="fw-semibold">
+                                        <i class="bi bi-person me-1"></i>
+                                        @Model.User.UserFname @Model.User.UserLname
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">Created on</small>
+                                    <div class="fw-semibold">
+                                        @(Model.GoalGoalStartDate.HasValue? startDate.ToString("MMM dd, yyyy") : "N/A")
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Left Column - Progress & Timeline -->
+        <div class="col-lg-8">
+            <!-- Progress Section -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="mb-0 text-dark">
+                        <i class="bi bi-speedometer2 me-2 text-primary"></i>Goal Progress Overview
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6 text-center">
+                            <div id="gauge-chart" class="mb-4"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="progress-stats">
+                                <div class="stat-item mb-3 p-3 bg-light rounded-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="text-muted">Days Completed</span>
+                                        <span class="h5 fw-bold text-primary mb-0" id="days-passed">@((int)daysPassed)</span>
+                                    </div>
+                                    <small class="text-muted">of @((int)totalDays) total days</small>
+                                </div>
+
+                                <div class="stat-item mb-3 p-3 bg-light rounded-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="text-muted">Time Remaining</span>
+                                        <span class="h5 fw-bold
+                                            @((int)daysLeft < 7 ? "text-danger" :
+                                                                                            (int)daysLeft < 30 ? "text-warning" : "text-success") mb-0" id="days-left">
+                                            @((int)daysLeft) days
+                                        </span>
+                                    </div>
+                                    <small class="text-muted">
+                                        @if ((int)daysLeft < 7)
+                                        {
+                                            <i class="bi bi-exclamation-triangle me-1"></i>
+                                            <text>Urgent attention needed</text>
+                                        }
+                                        else if ((int)daysLeft < 30)
+                                        {
+                                            <i class="bi bi-clock me-1"></i>
+                                            <text>Keep up the momentum</text>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-check-circle me-1"></i>
+                                            <text>Good progress</text>
+                                        }
+                                    </small>
+                                </div>
+
+                                <div class="stat-item p-3 bg-light rounded-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="text-muted">Completion Rate</span>
+                                        <span class="h5 fw-bold text-info mb-0" id="completion-rate">@((int)progress)%</span>
+                                    </div>
+                                    <small class="text-muted">Based on timeline progress</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline & Details -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="mb-0 text-dark">
+                        <i class="bi bi-calendar-event me-2 text-primary"></i>Goal Timeline & Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="timeline-section mb-4">
+                                <h6 class="fw-semibold mb-3 text-dark">
+                                    <i class="bi bi-clock-history me-2"></i>Timeline
+                                </h6>
+                                <div class="timeline">
+                                    <div class="timeline-item success">
+                                        <div class="timeline-marker">
+                                            <i class="bi bi-play-circle-fill"></i>
+                                        </div>
+                                        <div class="timeline-content">
+                                            <h6 class="fw-semibold mb-1">Goal Started</h6>
+                                            <p class="text-muted mb-0">
+                                                @(Model.GoalGoalStartDate.HasValue? startDate.ToString("MMMM dd, yyyy") : "N/A")
+                                            </p>
+                                            <small class="text-success">
+                                                <i class="bi bi-check-circle me-1"></i>Active
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="timeline-item @(DateTime.Now > endDate ? "danger" : "primary")">
+                                        <div class="timeline-marker">
+                                            <i class="bi bi-flag-fill"></i>
+                                        </div>
+                                        <div class="timeline-content">
+                                            <h6 class="fw-semibold mb-1">Target Completion</h6>
+                                            <p class="text-muted mb-0">
+                                                @(Model.GoalGoalEndDate.HasValue? endDate.ToString("MMMM dd, yyyy") : "N/A")
+                                            </p>
+                                            @if (DateTime.Now > endDate)
+                                            {
+                                                <small class="text-danger">
+                                                    <i class="bi bi-exclamation-triangle me-1"></i>
+                                                    Timeline exceeded
+                                                </small>
+                                            }
+                                            else
+                                            {
+                                                <small class="text-primary">
+                                                    <i class="bi bi-clock me-1"></i>
+                                                    @((int)daysLeft) days remaining
+                                                </small>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="details-section">
+                                <h6 class="fw-semibold mb-3 text-dark">
+                                    <i class="bi bi-info-circle me-2"></i>Goal Details
+                                </h6>
+                                <div class="detail-item mb-3">
+                                    <small class="text-muted d-block">Target Value</small>
+                                    <div class="h4 fw-bold text-primary">
+                                        @Model.GoalGoalValue?.ToString("N2")
+                                        <small class="fs-6 text-muted">@Model.EmissionSource.EmissionSourceUnit</small>
+                                    </div>
+                                </div>
+                                <div class="detail-item mb-3">
+                                    <small class="text-muted d-block">Emission Source</small>
+                                    <div class="fw-semibold">@Model.EmissionSource.EmissionSourceName</div>
+                                    @if (!string.IsNullOrEmpty(Model.EmissionSource.EmissionSourceDescription))
+                                    {
+                                        <small class="text-muted">@Model.EmissionSource.EmissionSourceDescription</small>
+                                    }
+                                </div>
+                                <div class="detail-item">
+                                    <small class="text-muted d-block">Tracking Period</small>
+                                    <div class="fw-semibold">@Model.GoalGoalPeriod</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Quick Actions & Insights -->
+        <div class="col-lg-4">
+            <!-- Status Management -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="mb-0 text-dark">
+                        <i class="bi bi-gear me-2 text-primary"></i>Manage Goal Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="UpdateStatus" asp-route-id="@Model.GoalId" method="POST" class="status-form">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Update Status</label>
+                            <select name="GoalStatus" class="form-select form-select-lg" onchange="this.form.submit()">
+                                <option value="Active" selected="@(Model.GoalStatus == "Active")"> Active - Working on this goal</option>
+                                <option value="Completed" selected="@(Model.GoalStatus == "Completed")"> Completed - Goal achieved</option>
+                                <option value="Cancelled" selected="@(Model.GoalStatus == "Cancelled")"> Cancelled - No longer pursuing</option>
+                            </select>
+                        </div>
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Changing status will update the goal's tracking
+                        </small>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Quick Insights -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="mb-0 text-dark">
+                        <i class="bi bi-graph-up me-2 text-primary"></i>Quick Insights
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="insight-item mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="insight-icon me-3">
+                                <i class="bi bi-calendar-check text-success fs-4"></i>
+                            </div>
+                            <div>
+                                <div class="fw-semibold">Timeline Progress</div>
+                                <div class="text-muted small">
+                                    @if (progress < 25)
+                                    {
+                                        <text>Early stages - Great time to establish routines</text>
+                                    }
+                                    else if (progress < 50)
+                                    {
+                                        <text>Good progress - Keep maintaining momentum</text>
+                                    }
+                                    else if (progress < 75)
+                                    {
+                                        <text>Halfway there - Stay focused on the target</text>
+                                    }
+                                    else
+                                    {
+                                        <text>Final stretch - Push to complete your goal</text>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="insight-item">
+                        <div class="d-flex align-items-center">
+                            <div class="insight-icon me-3">
+                                <i class="bi bi-lightbulb text-warning fs-4"></i>
+                            </div>
+                            <div>
+                                <div class="fw-semibold">Recommendation</div>
+                                <div class="text-muted small">
+                                    @if (daysLeft < 7 && Model.GoalStatus == "Active")
+                                    {
+                                        <text>Consider intensifying efforts or adjusting strategy</text>
+                                    }
+                                    else if (progress > 90 && Model.GoalStatus == "Active")
+                                    {
+                                        <text>You're almost there! Final push needed</text>
+                                    }
+                                    else
+                                    {
+                                        <text>Regular monitoring will help achieve your target</text>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <div class="d-grid gap-2">
+                        <a asp-action="Index" class="btn btn-outline-primary btn-lg">
+                            <i class="bi bi-list-ul me-2"></i>View All Goals
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .gauge-container {
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .progress-stats .stat-item {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+            .progress-stats .stat-item:hover {
+                transform: translateX(5px);
+                border-left-color: var(--dark-green);
+            }
+
+        .timeline {
+            position: relative;
+            padding-left: 2.5rem;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 2rem;
+        }
+
+            .timeline-item:last-child {
+                padding-bottom: 0;
+            }
+
+        .timeline-marker {
+            position: absolute;
+            left: -2.5rem;
+            top: 0.25rem;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.875rem;
+        }
+
+        .timeline-item.success .timeline-marker {
+            background: #28a745;
+        }
+
+        .timeline-item.primary .timeline-marker {
+            background: #007bff;
+        }
+
+        .timeline-item.danger .timeline-marker {
+            background: #dc3545;
+        }
+
+        .timeline-content {
+            padding-left: 1rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e9ecef;
+        }
+
+        .insight-item {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+            .insight-item:hover {
+                background: #e9ecef;
+                transform: translateY(-2px);
+            }
+
+        .insight-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card {
+            border-radius: 1rem;
+            border: none;
+        }
+
+        .status-form .form-select {
+            border-radius: 0.75rem;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+            .status-form .form-select:focus {
+                border-color: var(--dark-green);
+                box-shadow: 0 0 0 0.2rem rgba(26, 77, 46, 0.1);
+            }
+
+        .btn-lg {
+            border-radius: 0.75rem;
+            padding: 0.75rem 1.5rem;
+        }
+
+        .btn-dark-green {
+            background-color: var(--dark-green);
+        }
+
+        :root {
+            --dark-green: #1a4d2e;
+        }
+    </style>
+}
+
+@section Scripts {
+    <!-- Include ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Calculate progress values
+            const progress = @progress;
+            const daysLeft = @((int)daysLeft);
+            const totalDays = @((int)totalDays);
+
+            // Determine gauge color based on progress and days left
+            let gaugeColor = '#28a745'; // Green
+            if (daysLeft < 7) {
+                gaugeColor = '#dc3545'; // Red
+            } else if (daysLeft < 30) {
+                gaugeColor = '#ffc107'; // Yellow
+            } else if (progress > 80) {
+                gaugeColor = '#17a2b8'; // Blue
+            }
+
+            // Initialize Gauge Chart
+            const gaugeOptions = {
+                series: [progress],
+                chart: {
+                    height: 300,
+                    type: 'radialBar',
+                },
+                plotOptions: {
+                    radialBar: {
+                        startAngle: -90,
+                        endAngle: 90,
+                        track: {
+                            background: "#e7e7e7",
+                            strokeWidth: '97%',
+                            margin: 5,
+                        },
+                        dataLabels: {
+                            name: {
+                                show: true,
+                                fontSize: '16px',
+                                fontWeight: '600',
+                                offsetY: -10,
+                                color: '#495057'
+                            },
+                            value: {
+                                show: true,
+                                fontSize: '30px',
+                                fontWeight: 'bold',
+                                offsetY: 10,
+                                color: gaugeColor,
+                                formatter: function(val) {
+                                    return val.toFixed(0) + "%";
+                                }
+                            }
+                        }
+                    }
+                },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shade: 'light',
+                        type: 'horizontal',
+                        gradientToColors: [gaugeColor],
+                        stops: [0, 100]
+                    }
+                },
+                stroke: {
+                    lineCap: 'round'
+                },
+                labels: ['Progress'],
+                colors: [gaugeColor]
+            };
+
+            const gaugeChart = new ApexCharts(document.querySelector("#gauge-chart"), gaugeOptions);
+            gaugeChart.render();
+
+            // Update stats with animation
+            function animateValue(element, start, end, duration) {
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progressAnim = Math.min((timestamp - startTimestamp) / duration, 1);
+                    const value = Math.floor(progressAnim * (end - start) + start);
+                    element.textContent = value;
+                    if (progressAnim < 1) {
+                        window.requestAnimationFrame(step);
+                    }
+                };
+                window.requestAnimationFrame(step);
+            }
+
+            // Animate the stats
+            setTimeout(() => {
+                animateValue(document.getElementById('days-passed'), 0, @((int)daysPassed), 1000);
+                animateValue(document.getElementById('days-left'), @((int)daysLeft), @((int)daysLeft), 1000);
+                animateValue(document.getElementById('completion-rate'), 0, @((int)progress), 1500);
+            }, 500);
+        });
+    </script>
+}

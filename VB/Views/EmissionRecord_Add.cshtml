@@ -1,0 +1,126 @@
+﻿@model Sustain.ViewModels.EmissionRecordVMs.CreateEmissionRecordViewModel
+@{
+    var emissionSources = ViewBag.EmissionSources as List<Sustain.Models.EmissionSource> ?? new List<Sustain.Models.EmissionSource>();
+    var factories = ViewBag.Factories as List<Sustain.Models.Factory> ?? new List<Sustain.Models.Factory>();
+}
+
+<div class="modal fade" id="createEmissionModal" tabindex="-1" aria-labelledby="createEmissionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="createEmissionModalLabel">
+                    <i class="bi bi-plus-circle me-2"></i>New Emission Entry
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" asp-action="Store">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="EmissionSourceId" class="form-label fw-semibold">Emission Source *</label>
+                        <select class="form-select @(ViewData.ModelState["EmissionSourceId"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                                id="EmissionSourceId" name="EmissionSourceId" required>
+                            <option value="">Select Emission Source</option>
+                            @foreach (var source in emissionSources)
+                            {
+                                <option value="@source.EmissionSourceId" selected="@(Model?.EmissionSourceId == source.EmissionSourceId)">
+                                    @source.EmissionSourceName (@source.EmissionSourceUnit)
+                                </option>
+                            }
+                        </select>
+                        @if (ViewData.ModelState["EmissionSourceId"]?.Errors.Count > 0)
+                        {
+                            <div class="invalid-feedback">@ViewData.ModelState["EmissionSourceId"].Errors[0].ErrorMessage</div>
+                        }
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="FactoryId" class="form-label fw-semibold">Factory *</label>
+                        <select class="form-select @(ViewData.ModelState["FactoryId"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                                id="FactoryId" name="FactoryId" required>
+                            <option value="">Select Factory</option>
+                            @foreach (var factory in factories)
+                            {
+                                <option value="@factory.FactoryId" selected="@(Model?.FactoryId == factory.FactoryId)">
+                                    @factory.FactoryName
+                                </option>
+                            }
+                        </select>
+                        @if (ViewData.ModelState["FactoryId"]?.Errors.Count > 0)
+                        {
+                            <div class="invalid-feedback">@ViewData.ModelState["FactoryId"].Errors[0].ErrorMessage</div>
+                        }
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="EmissionYear" class="form-label fw-semibold">Year *</label>
+                            <select class="form-select @(ViewData.ModelState["EmissionYear"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                                    id="EmissionYear" name="EmissionYear" required>
+                                <option value="">Select Year</option>
+                                @for (int year = DateTime.Now.Year; year >= 2020; year--)
+                                {
+                                    <option value="@year" selected="@(Model?.EmissionYear == year)">
+                                        @year
+                                    </option>
+                                }
+                            </select>
+                            @if (ViewData.ModelState["EmissionYear"]?.Errors.Count > 0)
+                            {
+                                <div class="invalid-feedback">@ViewData.ModelState["EmissionYear"].Errors[0].ErrorMessage</div>
+                            }
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="EmissionMonth" class="form-label fw-semibold">Month *</label>
+                            <select class="form-select @(ViewData.ModelState["EmissionMonth"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                                    id="EmissionMonth" name="EmissionMonth" required>
+                                <option value="">Select Month</option>
+                                @for (int month = 1; month <= 12; month++)
+                                {
+                                    <option value="@month" selected="@(Model?.EmissionMonth == month)">
+                                        @(new DateTime(2020, month, 1).ToString("MMMM"))
+                                    </option>
+                                }
+                            </select>
+                            @if (ViewData.ModelState["EmissionMonth"]?.Errors.Count > 0)
+                            {
+                                <div class="invalid-feedback">@ViewData.ModelState["EmissionMonth"].Errors[0].ErrorMessage</div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="EmissionQuantity" class="form-label fw-semibold">Quantity *</label>
+                        <input type="number" step="0.01" class="form-control @(ViewData.ModelState["EmissionQuantity"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                               id="EmissionQuantity" name="EmissionQuantity"
+                               value="@Model?.EmissionQuantity"
+                               placeholder="Enter quantity" required>
+                        @if (ViewData.ModelState["EmissionQuantity"]?.Errors.Count > 0)
+                        {
+                            <div class="invalid-feedback">@ViewData.ModelState["EmissionQuantity"].Errors[0].ErrorMessage</div>
+                        }
+                        <div class="form-text">
+                            Enter the quantity based on the selected emission source unit
+                        </div>
+                    </div>
+
+                    @if (ViewData.ModelState["duplicate"]?.Errors.Count > 0)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            @ViewData.ModelState["duplicate"].Errors[0].ErrorMessage
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i>Create Record
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

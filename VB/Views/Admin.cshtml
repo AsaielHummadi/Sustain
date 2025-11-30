@@ -1,0 +1,280 @@
+﻿@model Sustain.ViewModels.DashboardVMs.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Administrator Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid p-4 p-md-5">
+    <!-- Welcome Message -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 fw-bold text-dark mb-2">Administrator Dashboard</h1>
+            <p class="text-muted">Manage your organization's sustainability platform</p>
+        </div>
+    </div>
+
+    @await Component.InvokeAsync("SubscriptionStatus")
+
+    <!-- Subscription Status Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-4">
+                    @{
+                        var currentSubscription = Model.CurrentSubscription;
+                        DateTime? endDate = null;
+                        int? remainingMonths = null;
+                        int? daysUntilRenewal = null;
+                        bool isExpiringSoon = false;
+                        bool isExpired = false;
+
+                        if (currentSubscription != null)
+                        {
+                            endDate = currentSubscription.SubscriptionEndDate?.ToDateTime(TimeOnly.MinValue);
+                            var now = DateTime.Now;
+                            remainingMonths = (endDate.Value.Year - now.Year) * 12 + endDate.Value.Month - now.Month;
+                            daysUntilRenewal = (int)(endDate.Value - now).TotalDays;
+                            isExpiringSoon = daysUntilRenewal <= 30 && daysUntilRenewal > 0;
+                            isExpired = daysUntilRenewal < 0;
+                        }
+                    }
+
+                    @if (currentSubscription != null)
+                    {
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+                            <div>
+                                <h4 class="mb-2">
+                                    @currentSubscription.SubscriptionPlan.SubscriptionPlanName
+                                    @if (currentSubscription.SubscriptionPlan.SubscriptionPlanType == "trial")
+                                    {
+                                        <span class="badge bg-warning text-dark ms-2">Free Trial</span>
+                                    }
+                                    else if (currentSubscription.SubscriptionPlan.SubscriptionPlanType == "free")
+                                    {
+                                        <span class="badge bg-info text-white ms-2">Free Plan</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success ms-2">Paid Plan</span>
+                                    }
+                                </h4>
+                                <p class="text-muted mb-1">
+                                    <i class="bi bi-calendar-check me-1"></i> Started: @currentSubscription.SubscriptionStartDate.ToString("MMM dd, yyyy")
+                                </p>
+                                <p class="mb-0">
+                                    <i class="bi bi-calendar-x me-1 text-danger"></i> Renewal Date:
+                                    <strong class="@(isExpired ? "text-danger" : (isExpiringSoon ? "text-warning" : ""))">
+                                        @endDate?.ToString("MMM dd, yyyy")
+                                    </strong>
+                                    @if (isExpired)
+                                    {
+                                        <span class="badge bg-danger ms-2">Expired</span>
+                                    }
+                                    else if (isExpiringSoon)
+                                    {
+                                        <span class="badge bg-warning text-dark ms-2">Expiring Soon</span>
+                                    }
+                                </p>
+                                <p class="mb-0 mt-2">
+                                    <i class="bi bi-hourglass-split me-1 text-info"></i>
+                                    <strong>
+                                        @if (isExpired)
+                                        {
+                                            @:Subscription expired @Math.Abs(daysUntilRenewal.Value) days ago
+                                        }
+                                        else if (daysUntilRenewal == 0)
+                                        {
+                                            @:Subscription renews today
+                                        }
+                                        else
+                                        {
+                                            @:@remainingMonths month@(remainingMonths != 1 ? "s" : "") remaining
+                                            @:(@daysUntilRenewal days)
+                                        }
+                                    </strong>
+                                </p>
+                            </div>
+                            <div class="mt-3 mt-md-0">
+                                <a href="@Url.Action("ShowBilling", "Subscription")" class="btn btn-primary px-4 py-2 rounded-3">
+                                    <i class="bi bi-credit-card me-2"></i>Manage Billing
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center">
+                            <i class="bi bi-credit-card display-4 text-muted mb-3"></i>
+                            <h5 class="text-muted mb-2">No Active Subscription</h5>
+                            <p class="text-muted mb-3">Your organization does not have an active plan.</p>
+                            <a href="@Url.Action("ShowBilling", "Subscription")" class="btn btn-dark-green px-4 py-2 rounded-3">
+                                <i class="bi bi-bag-plus me-2"></i>Subscribe Now
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats Row -->
+        <div class="row g-4 mb-5">
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi-card admin-kpi">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="kpi-title mb-1">Total Users</p>
+                            <h3 class="kpi-value">@Model.TotalUsers</h3>
+                            <span class="text-success fw-bold">+@(Model.ActiveUsers - (Model.TotalUsers - Model.ActiveUsers)) active</span>
+                        </div>
+                        <i class="bi bi-people-fill kpi-icon"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi-card admin-kpi">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="kpi-title mb-1">Active Factories</p>
+                            <h3 class="kpi-value">@Model.TotalFactories</h3>
+                            <span class="text-@(Model.FactoriesWithRecords == Model.TotalFactories ? "success" : "warning") fw-bold">
+                                @Model.FactoriesWithRecords reporting
+                            </span>
+                        </div>
+                        <i class="bi bi-building kpi-icon"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi-card admin-kpi">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="kpi-title mb-1">Subscription</p>
+                            <h3 class="kpi-value">
+                                @if (currentSubscription != null)
+                                {
+                                    @currentSubscription.SubscriptionPlan.SubscriptionPlanName
+                                }
+                                else
+                                {
+                                    @:None
+                                }
+                            </h3>
+                            <span class="text-@(isExpiringSoon ? "warning" : (isExpired ? "danger" : "success")) fw-bold">
+                                @if (currentSubscription != null)
+                                {
+                                    @if (isExpired)
+                                    {
+                                        @:Expired
+                                    }
+                                    else if (daysUntilRenewal <= 30)
+                                    {
+                                        @:Renews in @daysUntilRenewal days
+                                    }
+                                    else
+                                    {
+                                        @:Active
+                                    }
+                                }
+                                else
+                                {
+                                    @:No subscription
+                                }
+                            </span>
+                        </div>
+                        <i class="bi bi-shield-check kpi-icon"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi-card admin-kpi">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="kpi-title mb-1">Data Compliance</p>
+                            <h3 class="kpi-value">@Model.DataCompliance.ToString("N0")%</h3>
+                            <span class="text-@(Model.DataCompliance >= 90 ? "success" : (Model.DataCompliance >= 70 ? "warning" : "danger")) fw-bold">
+                                @(Model.DataCompliance >= 90 ? "Excellent" : (Model.DataCompliance >= 70 ? "Good" : "Needs Attention"))
+                            </span>
+                        </div>
+                        <i class="bi bi-clipboard-check kpi-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Row -->
+        <div class="row g-4">
+            <!-- Left Column -->
+            <div class="col-lg-8">
+                <!-- Recent Activity -->
+                <div class="chart-card mb-4">
+                    <h4 class="h5 fw-bold mb-3">Recent Activity</h4>
+                    <div class="list-group list-group-flush">
+                        @foreach (var activity in Model.RecentActivity)
+                        {
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi @activity.Icon @activity.Color me-2"></i>
+                                    <span>@activity.Message</span>
+                                </div>
+                                <small class="text-muted">@activity.Time</small>
+                            </div>
+                        }
+                        @if (Model.RecentActivity.Count == 0)
+                        {
+                            <div class="list-group-item text-center text-muted">
+                                No recent activity
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Factory Performance -->
+                <div class="chart-card">
+                    <h4 class="h5 fw-bold mb-3">Factory Performance Overview</h4>
+                    <div id="factoryPerformanceChart"></div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-lg-4">
+                <!-- User Distribution -->
+                <div class="chart-card">
+                    <h4 class="h5 fw-bold mb-3">User Distribution</h4>
+                    <div id="userDistributionChart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Factory Performance Chart
+            const factoryPerformanceOptions = {
+                chart: { type: 'bar', height: 300, toolbar: { show: false } },
+                series: [{
+                    name: 'CO2e Emissions (t)',
+                    data: @Json.Serialize(Model.FactoryPerformanceData)
+                }],
+                xaxis: {
+                    categories: @Json.Serialize(Model.FactoryPerformanceLabels)
+                },
+                colors: ['#1a4d2e'],
+                plotOptions: {
+                    bar: { borderRadius: 5, columnWidth: '60%' }
+                }
+            };
+            new ApexCharts(document.querySelector("#factoryPerformanceChart"), factoryPerformanceOptions).render();
+
+            // User Distribution Chart
+            const userDistributionOptions = {
+                chart: { type: 'donut', height: 250 },
+                series: @Json.Serialize(Model.UserDistributionData),
+                labels: @Json.Serialize(Model.UserDistributionLabels),
+                colors: ['#1a4d2e', '#38a169', '#6c757d']
+            };
+            new ApexCharts(document.querySelector("#userDistributionChart"), userDistributionOptions).render();
+        });
+    </script>
+}

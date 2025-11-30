@@ -1,0 +1,26 @@
+﻿@model Sustain.Utilities.Helpers.SubscriptionLimits
+
+<div class="alert alert-info d-flex flex-column flex-sm-row align-items-center justify-content-between">
+    <div class="d-flex align-items-center mb-2 mb-sm-0">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <span class="fw-semibold">Subscription Limits:</span>
+    </div>
+    <div class="d-flex gap-3">
+        <span>
+            <i class="bi bi-people me-1"></i>
+            Users: @Model.Users / @Model.MaxUsers
+            @if (Model.IsUserLimitReached)
+            {
+                <span class="badge bg-danger ms-1">Limit Reached</span>
+            }
+        </span>
+        <span>
+            <i class="bi bi-building me-1"></i>
+            Factories: @Model.Factories / @Model.MaxFactories
+            @if (Model.IsFactoryLimitReached)
+            {
+                <span class="badge bg-danger ms-1">Limit Reached</span>
+            }
+        </span>
+    </div>
+</div>

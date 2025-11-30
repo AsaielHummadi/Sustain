@@ -1,0 +1,397 @@
+﻿@model List<Sustain.Models.SubscriptionPlan>
+@{
+    ViewData["Title"] = "Sustain - Smart Track, Strong Impact";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<!-- Hero Section -->
+<div class="container-fluid hero-section d-flex align-items-center py-5">
+    <div class="row w-100 mx-lg-5 mx-3 g-5">
+        <!-- Text Content Column -->
+        <div class="col-lg-6 d-flex flex-column justify-content-center">
+            <h1 class="display-3 fw-bolder mb-4 text-dark">Smart Track, Strong Impact.</h1>
+            <p class="lead mb-5 text-secondary pe-lg-5">
+                Sustain is a platform empowering Saudi factories to accurately measure, manage, and reduce their
+                carbon emissions. Monitor operations, calculate impact, and move closer to a sustainable future, aligning
+                with the Saudi Vision 2030.
+            </p>
+            <div class="d-flex flex-column flex-sm-row gap-3">
+                <!-- Start Free Trial Button -->
+                @{
+                    var freeTrial = Model?.FirstOrDefault(p => p.SubscriptionPlanType == "trial");
+                }
+                <a href="@Url.Action("ShowSubscriptionForm", "Subscription", new { planId = freeTrial?.SubscriptionPlanId ?? 1 })" class="btn btn-outline-dark-green px-5 py-3 rounded-pill fw-bold">
+                    <i class="bi bi-lightning-fill me-2"></i>Start Free Trial
+                </a>
+                <!-- Get Started Button -->
+                <a href="#how-it-works" class="btn btn-dark-green px-5 py-3 rounded-pill fw-bold">Get Started ></a>
+            </div>
+        </div>
+        <!-- Image Column -->
+        <div class="col-lg-6 d-flex justify-content-center align-items-center">
+            <div class="image-container w-100">
+                <img src="~/hero.png" alt="Industrial Complex" class="img-fluid rounded-4">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MISSION, VISION, & VALUES SECTION -->
+<section id="saudi-vision" class="container-fluid py-5 my-5">
+    <div class="container">
+        <h2 class="text-center fw-bold mb-5">Our Mission, Vision & Values</h2>
+
+        <!-- Mission & Vision Cards -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-6">
+                <div class="mission-card p-4 text-center">
+                    <i class="bi bi-bullseye fs-1 text-success mb-3"></i>
+                    <h4 class="fw-bold text-dark mb-2">Mission</h4>
+                    <p class="text-secondary mb-0">
+                        To provide cutting-edge carbon emission management tools that are
+                        secure, accurate, and actionable, empowering Saudi industries to achieve environmental
+                        compliance and efficiency.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mission-card p-4 text-center">
+                    <i class="bi bi-eye-fill fs-1 text-success mb-3"></i>
+                    <h4 class="fw-bold text-dark mb-2">Vision</h4>
+                    <p class="text-secondary mb-0">
+                        To be the leading platform driving sustainable industrial
+                        transformation across the Kingdom, setting a global benchmark for environmental stewardship
+                        and net-zero ambition.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Core Values Grid -->
+        <div class="row g-4">
+            <div class="col-md-12">
+                <h3 class="text-center mt-4 mb-4">Core Values</h3>
+            </div>
+            <!-- Core Value: Security -->
+            <div class="col-lg-4 col-sm-6 text-center">
+                <div class="value-card d-flex flex-column justify-content-center">
+                    <i class="bi bi-shield-lock-fill iColor text-white fs-1 mb-2"></i>
+                    <h5 class="fw-bold text-center mb-1 text-white">Security</h5>
+                    <small class="text-white">
+                        Protecting sensitive industrial data with robust encryption and
+                        compliance protocols.
+                    </small>
+                </div>
+            </div>
+
+            <!-- Core Value: Transparency -->
+            <div class="col-lg-4 col-sm-6 text-center">
+                <div class="value-card d-flex flex-column justify-content-center">
+                    <i class="bi bi-journals text-white iColor fs-1 mb-2"></i>
+                    <h5 class="fw-bold text-center mb-1 text-white">Transparency</h5>
+                    <small class="text-white">
+                        Providing clear, verifiable, and audit-ready reports on emission
+                        tracking and reduction efforts.
+                    </small>
+                </div>
+            </div>
+
+            <!-- Core Value: Efficiency -->
+            <div class="col-lg-4 col-sm-6 text-center">
+                <div class="value-card d-flex flex-column justify-content-center">
+                    <i class="bi bi-speedometer text-white iColor fs-1 mb-2"></i>
+                    <h5 class="fw-bold text-center mb-1 text-white">Efficiency</h5>
+                    <small class="text-white">
+                        Streamlining the complex process of GHG accounting using smart
+                        automation and AI tools.
+                    </small>
+                </div>
+            </div>
+
+            <!-- Core Value: Accessibility -->
+            <div class="col-lg-4 col-sm-6 text-center">
+                <div class="value-card d-flex flex-column justify-content-center">
+                    <i class="bi bi-universal-access iColor text-white fs-1 mb-2"></i>
+                    <h5 class="fw-bold text-center mb-1 text-white">Accessibility</h5>
+                    <small class="text-white">
+                        Creating an intuitive, user-friendly platform available to businesses
+                        of all sizes and technical expertise.
+                    </small>
+                </div>
+            </div>
+
+            <!-- Core Value: Affordability -->
+            <div class="col-lg-4 col-sm-6 text-center">
+                <div class="value-card d-flex flex-column justify-content-center">
+                    <i class="bi bi-currency-dollar iColor text-white fs-1 mb-2"></i>
+                    <h5 class="fw-bold text-center mb-1 text-white">Affordability</h5>
+                    <small class="text-white">
+                        Offering cost-effective subscription plans tailored to the varying
+                        needs of the industrial sector.
+                    </small>
+                </div>
+            </div>
+
+            <!-- Core Value: Sustainability -->
+            <div class="col-lg-4 col-sm-6 text-center">
+                <div class="value-card d-flex flex-column justify-content-center">
+                    <i class="bi bi-recycle text-white iColor fs-1 mb-2"></i>
+                    <h5 class="fw-bold text-center mb-1 text-white">Sustainability</h5>
+                    <small class="text-white">
+                        A deep commitment to long-term environmental goals and the Kingdom's
+                        net-zero transition.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SAUDI NET-ZERO CALLOUT -->
+<section id="about-us" class="container-fluid py-5" style="background-color: var(--light-green);">
+    <div class="container">
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-5">
+                <img src="~/about.png" alt="About Sustain" class="img-fluid">
+            </div>
+            <div class="col-lg-7">
+                <p class="lead text-dark mb-0 ps-lg-4">
+                    As a leading global energy producer,
+                    Saudi Arabia is committed to advancing the fight against climate change. In 2021, The Royal
+                    Highness, Mohammed bin Salman, Crown Prince and Prime Minister, announced the Kingdom's plans to
+                    achieve net zero emissions by 2060 through the Circular Carbon Economy approach.
+
+                    This will contribute significantly to achieving global climate targets while protecting
+                    international energy security.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- WHY SUSTAIN SECTION -->
+<section id="why-sustain" class="container-fluid py-5 my-5">
+    <div class="container">
+        <h2 class="text-center fw-bold mb-5">Why Sustain</h2>
+        <div class="row g-5 align-items-center">
+            <div class="col-lg-6">
+                <ul class="list-unstyled">
+                    <li class="d-flex align-items-center mb-4">
+                        <img src="~/i1 (1).png" height="80" class="me-3 rounded" alt="Saudi Vision 2060">
+                        <div>
+                            <h5 class="fw-bold mb-1">Aligned with Saudi Vision 2060</h5>
+                            <p class="text-secondary mb-0">
+                                Systain enables organizations to measure and manage their Scope 1 & 2 emissions in
+                                full alignment with Saudi Arabia's Net-Zero 2060 Vision and the GHG Protocol.
+                            </p>
+                        </div>
+                    </li>
+
+                    <li class="d-flex align-items-center mb-4">
+                        <img src="~/i1 (2).png" height="80" class="me-3 rounded" alt="Centralized Data">
+                        <div>
+                            <h5 class="fw-bold mb-1">Centralized and Reliable Data</h5>
+                            <p class="text-secondary mb-0">
+                                Eliminate spreadsheets — Systain consolidates all operational data (energy, fuel,
+                                water, waste) into one secure, automated platform.
+                            </p>
+                        </div>
+                    </li>
+
+                    <li class="d-flex align-items-center mb-4">
+                        <img src="~/i1 (3).png" height="80" class="me-3 rounded" alt="Automated Calculations">
+                        <div>
+                            <h5 class="fw-bold mb-1">Accurate, Automated Calculations</h5>
+                            <p class="text-secondary mb-0">
+                                Our verified emission factors and validation controls ensure error-free GHG
+                                reporting and save valuable time across your sustainability workflow.
+                            </p>
+                        </div>
+                    </li>
+
+                    <li class="d-flex align-items-center mb-4">
+                        <img src="~/i1 (4).png" height="80" class="me-3 rounded" alt="Trust and Compliance">
+                        <div>
+                            <h5 class="fw-bold mb-1">Strengthen Trust and Compliance</h5>
+                            <p class="text-secondary mb-0">
+                                Maintain transparent, verifiable reports to meet ESG and regulatory requirements,
+                                while enhancing your organization's environmental credibility.
+                            </p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-lg-6 d-flex justify-content-center">
+                <img src="~/bg1.png" alt="Data analysis illustration" class="img-fluid rounded-4">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- HOW IT WORKS SECTION -->
+<section id="how-it-works" class="container-fluid py-5 my-5" style="background-color: var(--light-bg);">
+    <div class="container">
+        <h2 class="text-center fw-bold mb-5">How it works</h2>
+        <p class="text-center text-secondary mb-5 lead">We make is simple for you to understand the basic principles of our service</p>
+
+        <div class="row g-4 text-center">
+            <div class="col-md-12">
+                <img src="~/how.png" alt="How it works" class="img-fluid">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SUBSCRIPTION PLANS SECTION -->
+<section id="plans" class="container-fluid py-5 my-5 bg-white">
+    <div class="container">
+        <h2 class="text-center fw-bold mb-5">Subscription Plans:</h2>
+
+        <div class="row g-4 justify-content-center">
+            @if (Model != null)
+            {
+                @for (int i = 0; i < Model.Count; i++)
+                {
+                    var plan = Model[i];
+                    var isFeatured = i == 1; // Second plan is featured
+
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card price-card p-4 h-100 text-center @(isFeatured ? "featured-plan" : "")"
+                             style="@(isFeatured ? "background-color: var(--dark-green); color: white;" : "")">
+                            <h4 class="fw-bold mb-2">@plan.SubscriptionPlanName</h4>
+                            <h2 class="fw-bolder mb-3" style="@(!isFeatured ? "color: var(--dark-green);" : "")">
+                                @plan.SubscriptionPlanPrice?.ToString("N0") SAR
+                                <span class="fs-6 fw-normal">/yr</span>
+                            </h2>
+
+                            <ul class="list-unstyled text-start mb-4">
+                                <li class="mb-2">
+                                    <i class="bi bi-check-lg me-2" style="@(isFeatured ? "color: white;" : "color: var(--dark-green);")"></i>
+                                    Keep tracks of Emission source
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-lg me-2" style="@(isFeatured ? "color: white;" : "color: var(--dark-green);")"></i>
+                                    Send request Customize new Emission source
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-lg me-2" style="@(isFeatured ? "color: white;" : "color: var(--dark-green);")"></i>
+                                    Save activity data (energy, fuel, water, etc)
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-lg me-2" style="@(isFeatured ? "color: white;" : "color: var(--dark-green);")"></i>
+                                    Automatic GHG emission calculations Scope 1 and 2
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-lg me-2" style="@(isFeatured ? "color: white;" : "color: var(--dark-green);")"></i>
+                                    Generate standard sustainability reports PDF or Excel
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-lg me-2" style="@(isFeatured ? "color: white;" : "color: var(--dark-green);")"></i>
+                                    View dashboards for real-time performance
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-lg me-2" style="@(isFeatured ? "color: white;" : "color: var(--dark-green);")"></i>
+                                    Users: up to @plan.SubscriptionPlanUserMax users
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-lg me-2" style="@(isFeatured ? "color: white;" : "color: var(--dark-green);")"></i>
+                                    Factories: up to @plan.SubscriptionPlanFactoryMax factories
+                                </li>
+                            </ul>
+
+                            <button class="btn @(isFeatured ? "btn-light text-dark-green" : "btn-dark-green") w-100 py-2 fw-bold rounded-3"
+                                    onclick="window.location.href='@Url.Action("ShowSubscriptionForm", "Subscription", new { planId = plan.SubscriptionPlanId })'">
+                                Subscribe
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</section>
+
+@section Styles {
+    <style>
+        :root {
+            --dark-green: #1a4d2e;
+            --light-green: #d8eadb;
+            --light-bg: #f8f9fa;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .btn-dark-green {
+            background-color: var(--dark-green);
+            border-color: var(--dark-green);
+            color: white;
+        }
+
+        .btn-outline-dark-green {
+            border-color: var(--dark-green);
+            color: var(--dark-green);
+        }
+
+            .btn-outline-dark-green:hover {
+                background-color: var(--dark-green);
+                color: white;
+            }
+
+        .mission-card {
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+            .mission-card:hover {
+                transform: translateY(-5px);
+            }
+
+        .value-card {
+            background-color: var(--dark-green);
+            padding: 2rem 1rem;
+            border-radius: 15px;
+            height: 100%;
+            transition: transform 0.3s ease;
+        }
+
+            .value-card:hover {
+                transform: translateY(-5px);
+            }
+
+        .iColor {
+            color: var(--dark-green);
+        }
+
+        .price-card {
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+            .price-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            }
+
+        .featured-plan {
+            border-color: var(--dark-green);
+            position: relative;
+            overflow: hidden;
+        }
+
+            .featured-plan::before {
+                content: "Most Popular";
+                position: absolute;
+                top: 15px;
+                right: -30px;
+                background: var(--dark-green);
+                color: white;
+                padding: 5px 30px;
+                transform: rotate(45deg);
+                font-size: 0.8rem;
+                font-weight: bold;
+            }
+    </style>
+}
